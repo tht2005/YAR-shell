@@ -72,3 +72,11 @@ string string_pop_back (string s) {
     return s;
 }
 
+string new_substr (string begin, string end) {
+    string s = new_string ();
+    for (; begin != end; ++begin) {
+        string_push_back (s, *begin);
+    }
+    return s;
+}
+

@@ -32,4 +32,6 @@ string string_pop_back (string s);
 string ptr_to_string (void *ptr);
 void *string_to_ptr (string s);
 
+string new_substr (string begin, string end);
+
 #endif
