@@ -30,13 +30,16 @@ int match (char expected) {
     return 1;
 }
 
-inline int is_numeric (char c) {
-    return 0 <= 'c' && c <= '9';
+int is_numeric (char c) {
+    return '0' <= c && c <= '9';
 }
-inline int is_alpha (char c) {
+int is_alpha (char c) {
     return ('a' <= c && c <= 'z')
         || ('A' <= c && c <= 'Z')
         || c == '_';
+}
+int is_alpha_numeric (char c) {
+    return is_alpha (c) || is_numeric (c);
 }
 
 void add_token4 (token_type type, string lexeme, literal lit, int line) {
@@ -51,24 +54,17 @@ void add_token4 (token_type type, string lexeme, literal lit, int line) {
 }
 
 void add_token (token_type type) {
-
-    add_token4 (type, NULL, null_literal, line);
+    add_token4 (type, new_substr (source + start, source + current), null_literal, line);
+}
+void add_token2 (token_type type, literal lit) {
+    add_token4 (type, new_substr (source + start, source + current), lit, line);
 }
 
 void scan_token () {
-
     char c = advance ();
     switch (c) {
-        case ' ':
         case '\r':
-        case '\t':
             break;
-
-        case '\n':
-            ++line;
-            add_token (END_LINE);
-            break;
-
         case '(':
             add_token (LEFT_PARENTHESIS);
             break;
@@ -81,7 +77,6 @@ void scan_token () {
         case '}':
             add_token (RIGHT_BRACE);
             break;
-
         case '$':
             if (match ('(')) {
                 if (match ('(')) add_token (ARITHMETIC_BEGIN);
@@ -89,26 +84,18 @@ void scan_token () {
             }
             else if (match ('{'))
                 add_token (SUBSTITUTION_BEGIN);
-            else
-                add_token (DOLLAR);
-            break;
-
-        case ',':
-            add_token (COMMA);
-            break;
-        case '.':
-            add_token (DOT);
-            break;
-        case '?':
-            add_token (QUESTION_MARK);
-            break;
-        case ':':
-            add_token (COLON);
+            else if ( is_alpha_numeric (peek ()) ) {
+                while (!isAtEnd () && is_alpha_numeric (peek ()))
+                    advance ();
+                add_token (GET_VAR);
+            }
+            else {
+                goto DFL_CASE;
+            }
             break;
         case ';':
             add_token (SEMICOLON);
             break;
-
         case '=':
             add_token (match('=') ? EQUAL_EQUAL : EQUAL);
             break;
@@ -120,8 +107,81 @@ void scan_token () {
             break;
         case '>':
             add_token (match('=') ? GREATER_EQUAL : GREATER);
-
+            break;
+        case '+':
+            add_token (PLUS);
+            break;
+        case '-':
+            add_token (MINUS);
+            break;
+        case '*':
+            add_token (STAR);
+            break;
+        case '/':
+            // line comment
+            if (match ('/')) {
+                while (peek() != '\n' && !isAtEnd ())
+                    advance ();
+            }
+            // multiline comment
+            else if (match ('*')) {
+                while ( !(peek () == '*' && peekNext() == '/') && !isAtEnd () )
+                    advance ();
+                if (isAtEnd ()) {
+                    // raise error
+                }
+                advance ();
+                advance ();
+            }
+            else
+                add_token (SLASH);
+            break;
+        case '\\':
+            add_token (BACKSLASH);
+            break;
+        case '\'':
+            add_token (SINGLE_QUOTE);
+            break;
+        case '\"':
+            add_token (DOUBLE_QUOTE);
+            break;
+        case '\n':
+            ++line;
+            add_token (END_LINE);
+            break;
+DFL_CASE:
         default:
+            if (is_alpha_numeric (c)) {
+                while (!isAtEnd() && is_alpha_numeric(peek())) {
+                    advance ();
+                }
+                string s = new_substr (source + start, source + current);
+                if (strcmp (s, "if") == 0)
+                    add_token (IF);
+                else if (strcmp (s, "else") == 0)
+                    add_token (ELSE);
+                else if (strcmp (s, "for") == 0)
+                    add_token (FOR);
+                else if (strcmp (s, "while") == 0)
+                    add_token (WHILE);
+                else if (strcmp (s, "local") == 0)
+                    add_token (LOCAL);
+                else if (strcmp (s, "export") == 0)
+                    add_token (EXPORT);
+                else if (strcmp (s, "break") == 0)
+                    add_token (BREAK);
+                else if (strcmp (s, "continue") == 0)
+                    add_token (CONTINUE);
+                else if (strcmp (s, "fun") == 0)
+                    add_token (FUN);
+                else if (strcmp (s, "exit") == 0)
+                    add_token (EXIT);
+                else
+                    add_token (ALNUM);
+                free_string (s);
+            }
+            else
+                add_token (CHARACTER);
             break;
     }
 
@@ -138,8 +198,19 @@ list_head *scan_tokens(char *str) {
         start = current;
         scan_token ();
     }
+    start = current;
     add_token (END_OF_FILE);
 
     return &head;
+}
+
+void free_token_list (list_head *head) {
+    list_head *p, *tmp;
+    list_for_each_safe (p, tmp, head) {
+        list_del (p);
+        token_list *ptr = list_entry (p, token_list, link_node);
+        free_token (ptr->tok);
+        free (ptr);
+    }
 }
 

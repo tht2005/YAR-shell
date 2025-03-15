@@ -7,27 +7,30 @@
 
 typedef enum {
 
-    IDENTIFIER, NUMBER, STRING,
+    ALNUM, CHARACTER,
 
     IF, ELSE, FOR, WHILE,
+    BREAK, CONTINUE,
     LOCAL, EXPORT,
-    AND, OR, TRUE, FALSE, NIL,
-    FUN, RETURN,
+    AND, OR,
+    FUN, EXIT,
 
     EQUAL, EQUAL_EQUAL,
     LESS, LESS_EQUAL,
     GREATER, GREATER_EQUAL,
     BANG, BANG_EQUAL,
 
+    GET_VAR,
     SUBSTITUTION_BEGIN,
     ARITHMETIC_BEGIN, DOUBLE_RIGHT_PARENTHESIS,
     SUBCOMMAND_BEGIN,
 
     LEFT_PARENTHESIS, RIGHT_PARENTHESIS,
     LEFT_BRACE, RIGHT_BRACE,
-    COMMA, DOT, DOLLAR,
     PLUS, MINUS, STAR, SLASH,
-    SEMICOLON, COLON, QUESTION_MARK,
+    BACKSLASH, SEMICOLON,
+
+    SINGLE_QUOTE, DOUBLE_QUOTE,
 
     END_LINE,
 
@@ -46,6 +49,7 @@ typedef struct {
 } token;
 
 token new_token (token_type type, string lexeme, literal lit, int line);
+void free_token (token tok);
 
 #endif
 

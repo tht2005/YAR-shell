@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 typedef enum {
-    INT, STR, BOOLEAN, NONE 
+    STR, ARRAY, NONE
 } literal_type;
 
 typedef struct {

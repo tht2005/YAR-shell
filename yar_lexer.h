@@ -20,6 +20,7 @@ typedef struct {
     token tok;
 } token_list;
 
+list_head *scan_tokens (char *str);
 void free_token_list (list_head *head);
 
 #endif

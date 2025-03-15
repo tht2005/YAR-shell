@@ -12,5 +12,6 @@ token new_token (token_type type, string lexeme, literal lit, int line)
 
 void free_token (token tok) {
     free_string (tok.lexeme);
+    free_literal (tok.lit);
 }
 
