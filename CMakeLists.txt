@@ -5,7 +5,10 @@ project(yar VERSION 1.0)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(SRC_FILES   yar_lexer.c
+set(SRC_FILES   main.c 
+                yar_lexer.c
+                yar_literal.c
+                yar_token.c
                 data_structure/list_head.c
                 data_structure/string.c
             )
