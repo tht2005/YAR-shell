@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package (PkgConfig REQUIRED)
 pkg_check_modules (READLINE REQUIRED readline)
 
-set(SRC_FILES   main.c 
+set(SRC_FILES   yar.c 
                 yar_lexer.c
                 yar_literal.c
                 yar_token.c
