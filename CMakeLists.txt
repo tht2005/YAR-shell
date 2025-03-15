@@ -29,7 +29,8 @@ target_include_directories(
 )
 target_compile_options (
     yar PUBLIC
-    ${READLINE_CFLAGS_OTHER}
+    ${READLINE_CFLAGS}
+    ${READLINE_LDFLAGS}
 )
 
 # configure_file(
