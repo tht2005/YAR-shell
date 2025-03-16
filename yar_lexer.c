@@ -1,3 +1,4 @@
+#include "yar.h"
 #include "yar_lexer.h"
 #include "data_structure/list_head.h"
 #include "data_structure/string.h"
@@ -93,6 +94,12 @@ void scan_token () {
                 goto DFL_CASE;
             }
             break;
+        case ':':
+            add_token (COLON);
+            break;
+        case '?':
+            add_token (QUESTION_MARK);
+            break;
         case ';':
             add_token (SEMICOLON);
             break;
@@ -128,7 +135,7 @@ void scan_token () {
                 while ( !(peek () == '*' && peekNext() == '/') && !isAtEnd () )
                     advance ();
                 if (isAtEnd ()) {
-                    // raise error
+                    error (line, "Unterminated multiline comment");
                 }
                 advance ();
                 advance ();
