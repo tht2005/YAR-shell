@@ -5,13 +5,14 @@ project(yar VERSION 1.0)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+add_compile_definitions(STRING_INIT_BUF=16)
+
 find_package (PkgConfig REQUIRED)
 pkg_check_modules (READLINE REQUIRED readline)
 
 set(SRC_FILES   yar.c 
-                yar_lexer.c
-                yar_literal.c
-                yar_token.c
+                yar_parser.c
+                yar_error.c
                 data_structure/list_head.c
                 data_structure/string.c
             )
