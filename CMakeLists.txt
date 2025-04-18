@@ -13,6 +13,8 @@ pkg_check_modules (READLINE REQUIRED readline)
 set(SRC_FILES   yar.c 
                 yar_parser.c
                 yar_error.c
+                yar_env.c
+                yar_exec.c
                 data_structure/list_head.c
                 data_structure/string.c
             )
