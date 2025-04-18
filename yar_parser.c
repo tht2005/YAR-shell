@@ -1,9 +1,15 @@
 #include "yar_env.h"
+#include "yar_job.h"
+#include "yar_exec.h"
 #include "yar_parser.h"
+#include "yar_shell.h"
+
 #include "data_structure/string.h"
 
 #include <ctype.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 int source_len;
 char *source;
@@ -11,6 +17,13 @@ char *source;
 int start;
 int cur;
 int inside_double_quote;
+int process_spliter;
+
+int end_job_char (char c) {
+    return c == ';'
+        || c == '|'
+        || c == '&';
+}
 
 int skipped_char (char c) {
     return c == '\r';
@@ -60,11 +73,11 @@ string next_single_quote_string (string str) {
         str = string_push_back (str, source[cur]);
         ++cur;
     }
-
-    if (cur == source_len) {
+    if (end ()) {
         // raise error string not end
         free_string (str);
     }
+    ++cur;
     return str;
 }
 
@@ -81,8 +94,6 @@ string next_double_quote_string (string str) {
         fprintf (stderr, "Yar: double quote string don't end ...\n");
         exit (EXIT_FAILURE);
     }
-    ++cur;
-    str = next_string (str);
     return str;
 }
 
@@ -99,7 +110,6 @@ string next_get_var (string str) {
     }
     str = string_append_back(str, value);
     free_string (var_name);
-    str = next_string (str);
     return str;
 }
 
@@ -147,12 +157,11 @@ string next_string (string str) {
     char c;
     int cont_retrieve = 1;
 
-    skip_space ();
+    process_spliter = 0;
 
-    for(; !end() && cont_retrieve; ++cur) {
+    while (!end() && cont_retrieve) {
 
         switch (c = cur_char ()) {
-
             case '$':
                 c = next_char ();
                 // change get_var condition??
@@ -174,16 +183,20 @@ string next_string (string str) {
                 break;
 
             case '\'':
-                if (inside_double_quote)
+                if (inside_double_quote) {
                     str = string_push_back (str, c);
-                else
+                    ++cur;
+                }
+                else {
                     str = next_single_quote_string (str);
+                }
                 break;
 
             case '\"':
                 if (inside_double_quote) {
                     cont_retrieve = 0;
                     inside_double_quote = 0;
+                    ++cur;
                 }
                 else {
                     str = next_double_quote_string (str);
@@ -201,68 +214,268 @@ string next_string (string str) {
                         break;
                     default:
                         str = string_push_back (str, c);
+                        ++cur;
                         break;
                 }
                 break;
 
             case '#':
-                if (inside_double_quote)
+                if (inside_double_quote) {
                     str = string_push_back (str, c);
+                    ++cur;
+                }
                 else {
                     // comment
                 }
                 break;
 
-            case ' ':
+            case ';':
+            case '|':
+            case '&':
             case '\n':
-            //case ';':
-                if (inside_double_quote)
+                if (!inside_double_quote)
+                    process_spliter = c;
+                // i don't break here
+            case ' ':
+                if (inside_double_quote) {
                     str = string_push_back (str, c);
-                else
+                }
+                else {
                     cont_retrieve = 0;
+                }
+
+                ++cur;
                 break;
 
             default:
                 str = string_push_back (str, c);
+                ++cur;
                 break;
 
         }
     }
+
     return str;
 }
 
-void command () {
+string get_next_string_block () {
+    skip_space();
+    start = cur;
+    return next_string ( new_string() );
+}
+
+process * single_command () {
+    if (yar_push_env() != 0) {
+        exit (EXIT_FAILURE);
+    }
+
     while (skip_space(), check_assignment ()) {
         string name = new_string ();
         while (cur_char () != '=') {
             name = string_push_back (name, cur_char());
             ++cur;
         }
+        
         // skip '='
         ++cur;
 
         string value = new_string ();
         value = next_string (value);
 
-        printf ("debug %s->%s\n", name, value);
+        fprintf (stderr, "debug %s->%s\n", name, value);
+        if (yar_setenv (name, value, 1) != 0) {
+            exit (EXIT_FAILURE);
+        }
 
         free_string (name);
         free_string (value);
     }
 
+    int argc = 0;
+    int max_argv = 4;
+    string *argv = (string *) malloc (max_argv  * sizeof (string));
+    if (argv == NULL) {
+        fprintf (stderr, "Yar: can not allocate argv!\n");
+        exit (EXIT_FAILURE);
+    }
+
+    process *p = (process *) malloc (sizeof (process));
+    if (p == NULL) {
+        fprintf (stderr, "Yar: can not alloc process.\n");
+        exit (1);
+    }
+    p->next = NULL;
+    p->env = yar_calculate_global_environ ();
+    p->pid = 0;
+    p->completed = 0;
+    p->stopped = 0;
+    p->status = 0;
+    p->stdin = STDIN_FILENO;
+    p->stdout = STDOUT_FILENO;
+    p->stderr = STDERR_FILENO;
+
+    int *file_d[] = { &(p->stdin), &(p->stdout), &(p->stderr) };
+
     int cont = 1;
-    while (cont) {
-        string str = new_string ();
-        str = next_string (str);
-        printf ("===%s===\n", str);
-        if (string_length (str) == 0) {
+    while (cont && process_spliter == 0) {
+
+        if (argc >= max_argv) {
+            max_argv <<= 1;
+            argv = realloc (argv, max_argv * sizeof (string));
+            if (argv == NULL) {
+                fprintf (stderr, "Yar: can not re-allocate argv!\n");
+                exit (EXIT_FAILURE);
+            }
+        }
+
+        skip_space ();
+        // if ()
+
+        argv[argc] = get_next_string_block ();
+
+        if (string_length (argv[argc]) == 0) {
+            free_string (argv[argc]);
+            argv[argc] = NULL;
             cont = 0;
         }
-        free_string (str);
+        else if (string_length (argv[argc]) == cur - start) {
+
+            // redirection handling ...
+
+
+            char *str = argv[argc];
+            int valid_redirection = 0;
+
+            switch (cur - start) {
+                case 1:
+                    if (strncmp (str, ">", 1) == 0) {
+                        string outfile = get_next_string_block();
+                        int fd = open (outfile, O_WRONLY | O_CREAT);
+                        if (fd < 0) {
+                            perror ("open");
+                            exit (1);
+                        }
+                        p->stdout = fd;
+                        free_string (outfile);
+                        valid_redirection = 1;
+                    }
+                    else if (strncmp (str, "<", 1) == 0) {
+                        string infile = get_next_string_block();
+                        int fd = open (infile, O_RDONLY);
+                        if (fd < 0) {
+                            perror ("open");
+                            exit (1);
+                        }
+                        p->stdin = fd;
+                        free_string (infile);
+                        valid_redirection = 1;
+                    }
+
+                    break;
+
+                case 2:
+                    if (strncmp (str, ">>", 2) == 0) {
+                        string outfile = get_next_string_block();
+                        int fd = open (outfile, O_WRONLY | O_CREAT | O_APPEND);
+                        if (fd < 0) {
+                            perror ("open");
+                            exit (1);
+                        }
+                        p->stdout = fd;
+                        free_string (outfile);
+                        valid_redirection = 1;
+                    }
+                    else if (strncmp (str, "&>", 2) == 0) {
+                        string outfile = get_next_string_block();
+                        int fd = open (outfile, O_WRONLY | O_CREAT);
+                        if (fd < 0) {
+                            perror ("open");
+                            exit (1);
+                        }
+                        p->stdout = fd;
+                        p->stderr = fd;
+                        free_string (outfile);
+                        valid_redirection = 1;
+                    }
+                    break;
+
+                case 3:
+                    break;
+
+                case 4:
+                    // a>&b -> redirect a equal b
+                    if ('0' <= str[0] && str[0] <= '2'
+                        && '0' <= str[3] && str[3] <= '2'
+                        && str[1] == '>' && str[2] == '&') {
+
+                        int a = str[0] - '0';
+                        int b = str[3] - '0';
+
+                        *(file_d[a]) = *(file_d[b]);
+
+                        valid_redirection = 1;
+                    }
+                    break;
+
+                default:
+                    break;
+
+            }
+
+            if (valid_redirection) {
+                free_string (argv[argc]);
+                --argc;
+            }
+
+        }
+        ++argc;
     }
+
+    p->argv = argv;
+
+    if (argc > 1) {
+
+        if (yar_pop_env () != 0) {
+            exit (EXIT_FAILURE);
+        }
+    }
+
+    return p;
+}
+
+job* simple_job () {
+    process *last_process = NULL;
+
 }
 
 void test () {
-    command ();
+    // process *p = single_command();
+    //
+    // job *j = (job *) malloc (sizeof (job));
+    // if (j == NULL) {
+    //     fprintf (stderr, "Yar: can not alloc job.\n");
+    //     exit (1);
+    // }
+    //
+    // j->next = NULL;
+    // j->command = NULL;
+    // j->first_process = p;
+    // j->pgid = 0;
+    // j->notified = 0;
+    // tcgetattr (shell_terminal, &j->tmodes);
+    // j->stdin = STDIN_FILENO;
+    // j->stdout = STDOUT_FILENO;
+    // j->stderr = STDERR_FILENO;
+    //
+    // launch_job (j, 1);
+    // free_process (p);
+
+    while (!end ()) {
+        process *p = single_command ();
+
+        printf ("db: %c\n", process_spliter);
+
+        free_process (p);
+    }
 }
 
