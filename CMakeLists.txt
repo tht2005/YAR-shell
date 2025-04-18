@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_compile_definitions(STRING_INIT_BUF=16)
+add_compile_definitions(_GNU_SOURCE)
 
 find_package (PkgConfig REQUIRED)
 pkg_check_modules (READLINE REQUIRED readline)
@@ -15,9 +16,12 @@ set(SRC_FILES   yar.c
                 yar_error.c
                 yar_env.c
                 yar_exec.c
+                yar_job.c
+                yar_shell.c
                 data_structure/list_head.c
                 data_structure/string.c
             )
+
 
 add_executable(yar ${SRC_FILES})
 
