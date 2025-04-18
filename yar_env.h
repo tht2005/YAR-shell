@@ -13,4 +13,7 @@ int yar_setenv (const char *, const char *, int);
 int yar_unsetenv (const char *);
 char* yar_getenv (const char *name);
 
+char **yar_calculate_environ ();
+char **yar_calculate_global_environ ();
+
 #endif

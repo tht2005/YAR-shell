@@ -16,7 +16,10 @@ scope_environ_t global;
 scope_environ_t *current;
 
 void __exit_env () {
-    yar_pop_env ();
+
+    while (current->parent != NULL) {
+        yar_pop_env ();
+    }
 
     if (pthread_mutex_destroy (&environ_mutex) != 0) {
         fprintf(stderr, "Yar: mutex destroy failed!\n");
@@ -61,6 +64,21 @@ int yar_pop_env () {
     return 0;
 }
 
+scope_environ_t * yar_pop_env_store () {
+    if (current == NULL) {
+        fprintf (stderr, "Yar: (DEV CRITICAL BUG) current is NULL!\n");
+        return NULL;
+    }
+    if (current->parent == NULL) {
+        fprintf (stderr, "Yar: (DEV CRITICAL BUG) current->parent is NULL!\n");
+        return NULL;
+    }
+    scope_environ_t *parent = current->parent;
+    scope_environ_t *res = current;
+    current = parent;
+    return res;
+}
+
 int yar_setenv (const char *name, const char *value, int replace) {
     int status;
     char **old_environ;
@@ -69,6 +87,8 @@ int yar_setenv (const char *name, const char *value, int replace) {
         fprintf (stderr, "Yar: environt mutex lock failed!\n");
         return -1;
     }
+
+    // need to fix, find the lowest parent has `name` variable
 
     old_environ = environ;
     environ = current->environ;
@@ -134,5 +154,72 @@ char *yar_getenv (const char *name) {
     }
 
     return result ? result : "";
+}
+
+void __rec_putenv (scope_environ_t *cur) {
+
+    if (cur == NULL)
+        return;
+
+    __rec_putenv (cur->parent);
+
+    if (cur->environ == NULL)
+        return;
+
+    for (char **str = cur->environ; *str; ++str) {
+        if (putenv (*str) != 0) {
+            fprintf (stderr, "Yar: putenv failed for %s\n", *str);
+        }
+    }
+}
+
+char **yar_calculate_environ () {
+    char **old_environ;
+    char **result;
+
+    if (pthread_mutex_lock (&environ_mutex) != 0) {
+        fprintf (stderr, "Yar: environt mutex lock failed!\n");
+        return NULL;
+    }
+
+    old_environ = environ;
+    environ = NULL;
+
+    __rec_putenv (current);
+
+    result = environ;
+    environ = old_environ;
+
+    if (pthread_mutex_unlock (&environ_mutex) != 0) {
+        fprintf (stderr, "Yar: environt mutex unlock failed!\n");
+        return NULL;
+    }
+
+    return result;
+}
+
+char **yar_calculate_global_environ () {
+    char **old_environ;
+    char **result;
+
+    if (pthread_mutex_lock (&environ_mutex) != 0) {
+        fprintf (stderr, "Yar: environt mutex lock failed!\n");
+        return NULL;
+    }
+
+    old_environ = environ;
+    environ = NULL;
+
+    __rec_putenv (&global);
+
+    result = environ;
+    environ = old_environ;
+
+    if (pthread_mutex_unlock (&environ_mutex) != 0) {
+        fprintf (stderr, "Yar: environt mutex unlock failed!\n");
+        return NULL;
+    }
+
+    return result;
 }
 
