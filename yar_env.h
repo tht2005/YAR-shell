@@ -1,6 +1,9 @@
 #ifndef __YAR_ENV_H
 #define __YAR_ENV_H
 
+struct scope_environ_t;
+typedef struct scope_environ_t scope_environ_t;
+
 void init_env ();
 
 int yar_push_env ();
