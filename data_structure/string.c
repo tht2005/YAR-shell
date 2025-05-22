@@ -1,5 +1,11 @@
 #include "string.h"
 
+#include <assert.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 void *string_to_ptr (string s) {
     return ((void *) s) - sizeof (string_metadata_t);
 }
@@ -72,10 +78,17 @@ string string_pop_back (string s) {
     return s;
 }
 
+string string_append_back (string str, const char *a) {
+    int len = strlen (a);
+    for (int i = 0; i < len; ++i)
+        str = string_push_back (str, a[i]);
+    return str;
+}
+
 string new_substr (string begin, string end) {
     string s = new_string ();
     for (; begin != end; ++begin) {
-        string_push_back (s, *begin);
+        s = string_push_back (s, *begin);
     }
     return s;
 }
