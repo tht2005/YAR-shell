@@ -8,16 +8,15 @@
 
 typedef struct process
 {
-
   struct process *next;
+  int cnt_assignment;
+  int argc;
   string *argv;
-  char **env;
   pid_t pid;
   char completed;
   char stopped;
   int status;
   int stdin, stdout, stderr;
-
 } process;
 
 typedef struct job

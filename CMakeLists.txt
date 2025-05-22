@@ -18,10 +18,9 @@ set(SRC_FILES   yar.c
                 yar_exec.c
                 yar_job.c
                 yar_shell.c
-                data_structure/list_head.c
                 data_structure/string.c
+                data_structure/environ.c
             )
-
 
 add_executable(yar ${SRC_FILES})
 
@@ -45,3 +44,9 @@ target_compile_options (
 #     include/config.h
 #     @ONLY
 # )
+
+# Testing
+add_subdirectory (tests)
+set(LIB_FILES   ${SRC_FILES})
+add_library (libs STATIC ${LIB_FILES})
+enable_testing ()

@@ -53,7 +53,7 @@ void run (char *source) {
 void run_prompt () {
     // interactive mode
 
-    yar_setenv ("HOSTNAME", "Gentoo", 1);
+    // yar_setenv ("HOSTNAME", "Gentoo", 1);
 
     // can't use valgrind with readline lib so ...
     
@@ -78,18 +78,21 @@ void run_prompt () {
     while (1) {
 
         char ps[128] = "",
-             *p = yar_getenv ("USER"),
-             *host = yar_getenv ("HOSTNAME"),
+             *p = NULL,
+             *host = NULL,
              *s = NULL;
+             // *p = yar_getenv ("USER"),
+             // *host = yar_getenv ("HOSTNAME"),
+             // *s = NULL;
 
         char *cwd = getcwd (NULL, 0);
-        snprintf (ps, 127, "%s@%s %s $ ", p, host, cwd);
+        snprintf (ps, 100, "%s@%s %s $ ", p, host, cwd);
 
         free (cwd);
 
         printf ("%s", ps);
         char buffer[1000];
-        fgets (buffer, 999, stdin);
+        fgets (buffer, 800, stdin);
         int len = strlen (buffer);
 
         if (strncmp (buffer, "exit", 4) == 0) {

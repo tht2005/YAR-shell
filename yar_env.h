@@ -4,16 +4,11 @@
 struct scope_environ_t;
 typedef struct scope_environ_t scope_environ_t;
 
+extern scope_environ_t *global, *global_current;
+
 void init_env ();
 
-int yar_push_env ();
-int yar_pop_env ();
-
-int yar_setenv (const char *, const char *, int);
-int yar_unsetenv (const char *);
-char* yar_getenv (const char *name);
-
-char **yar_calculate_environ ();
-char **yar_calculate_global_environ ();
+scope_environ_t* yar_push_env (scope_environ_t *);
+scope_environ_t* yar_pop_env (scope_environ_t *, int);
 
 #endif

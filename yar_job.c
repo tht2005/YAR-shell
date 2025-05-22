@@ -19,10 +19,12 @@ void free_process (process *p) {
     free (p);
 }
 void free_job (job *j) {
-    process *p;
-    for (p = j->first_process; p; p = p->next)
+    for (process *p = j->first_process, *_next; p; p = _next) {
+        _next = p->next;
         free_process (p);
-    free_string (j->command);
+    }
+    if (j->command)
+        free_string (j->command);
     free (j);
 }
 
@@ -99,7 +101,7 @@ void wait_for_job (job *j) {
 }
 
 void format_job_info (job *j, const char *status) {
-    fprintf (stderr, "%ld (%s): %s\n", (long)j->pgid, status, j->command);
+    //fprintf (stderr, "%ld (%s): %s\n", (long)j->pgid, status, j->command);
 }
 
 void do_job_notification (void) {

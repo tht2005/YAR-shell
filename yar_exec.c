@@ -3,20 +3,18 @@
 #include "yar_job.h"
 #include "yar_shell.h"
 
-#include "data_structure/string.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <errno.h>
+#include <string.h>
 
-void __yar_execute (const char *file, char *const argv[], char *const envp[]) {
-    // check the builtin-command, functions ...
-
-    execvpe (file, argv, envp);
-    perror ("execvpe");
-    exit (1);
+size_t __cnt_processes (job *j)
+{
+    size_t res = 0;
+    for (process *p = j->first_process; p; p = p->next)
+        ++res;
+    return res;
 }
 
 void launch_process (process *p, pid_t pgid, int foreground) {
@@ -52,10 +50,38 @@ void launch_process (process *p, pid_t pgid, int foreground) {
         close (p->stderr);
     }
 
-    __yar_execute (p->argv[0], p->argv, p->env);
+    // init environment
+    int i;
+    for (i = 0; i < (p->cnt_assignment); ++i) {
+        if (putenv ( strdup(p->argv[i])) ) {
+            perror ("putenv");
+            exit (1);
+        } 
+    }
+    
+    execvp (p->argv[i], &(p->argv[i]));
+    perror ("execvp");
+    exit (1);
 }
 
 void launch_job (job *j, int foreground) {
+
+    // assignment case
+    if (__cnt_processes (j) == 1
+            && j->first_process->cnt_assignment == j->first_process->argc) {
+
+        fprintf (stderr, "DEBUG: you just assign variables!\n");
+
+        process *p = j->first_process;
+        for (int i = 0; i < (p->cnt_assignment); ++i) {
+            if (putenv (p->argv[i])) {
+                perror ("putenv");
+                exit (1);
+            } 
+        }
+        return;
+    }
+
     process *p;
     pid_t pid;
     int mypipe[2], infile, outfile;
