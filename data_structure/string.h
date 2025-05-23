@@ -20,6 +20,7 @@ typedef struct {
 typedef char* string;
 
 string new_string ();
+string new_string_2 (char *);
 
 void free_string (string s);
 

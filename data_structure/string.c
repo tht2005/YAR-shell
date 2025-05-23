@@ -93,3 +93,8 @@ string new_substr (string begin, string end) {
     return s;
 }
 
+string new_string_2 (char *str)
+{
+    return new_substr (str, str + strlen (str));
+}
+
