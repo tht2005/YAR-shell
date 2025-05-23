@@ -46,7 +46,7 @@ target_compile_options (
 # )
 
 # Testing
-add_subdirectory (tests)
+enable_testing ()
 set(LIB_FILES   ${SRC_FILES})
 add_library (libs STATIC ${LIB_FILES})
-enable_testing ()
+add_subdirectory (tests)
