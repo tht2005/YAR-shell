@@ -6,7 +6,7 @@
 function(create_test target)
     message(STATUS "Creating test: ${target}")
     add_executable(${target} "${target}.c")
-    target_link_libraries(${target} PRIVATE libs)
+    target_link_libraries(${target} parent_libs)
     target_include_directories(${target} PRIVATE ${PROJECT_SOURCE_DIR})
     add_test(NAME ${target} COMMAND ${target})
 endfunction()

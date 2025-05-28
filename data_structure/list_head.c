@@ -1,4 +1,4 @@
-#include "data_structure/list_head.h"
+#include "list_head.h"
 
 void init_list_head (list_head *head) {
     head->next = head;

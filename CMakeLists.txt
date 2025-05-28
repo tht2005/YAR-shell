@@ -6,12 +6,17 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_compile_definitions(STRING_INIT_BUF=16)
-add_compile_definitions(_GNU_SOURCE)
+# add_compile_definitions(_GNU_SOURCE)
 
 find_package (PkgConfig REQUIRED)
 pkg_check_modules (READLINE REQUIRED readline)
 
 file(GLOB BUILTIN_CMD_SRCS "builtin_commands/*.c")
+add_library(builtinCommands STATIC ${BUILTIN_CMD_SRCS})
+
+file(GLOB DATA_STRUCTURE_SRCS "data_structure/*.c")
+add_library(dataStructures STATIC ${DATA_STRUCTURE_SRCS})
+
 set(SRC_FILES   yar.c 
                 yar_error.c
                 yar_env.c
@@ -20,20 +25,19 @@ set(SRC_FILES   yar.c
                 yar_shell.c
                 yar_lexer.c
                 yar_parser.tab.c
-                ${BUILTIN_CMD_SRCS}
-                data_structure/string.c
-                data_structure/environ.c
+                yar_interpreter.c
             )
-
+add_library (program STATIC ${SRC_FILES})
 add_executable(yar ${SRC_FILES})
-
 target_link_libraries (
-    yar
-    ${READLINE_LIBRARIES}
+    yar     ${READLINE_LIBRARIES}
+            builtinCommands
+            dataStructures
 )
 target_include_directories(
     yar PUBLIC
     ${PROJECT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/lib
     ${READLINE_INCLUDE_DIRS}
 )
 target_compile_options (
@@ -42,14 +46,10 @@ target_compile_options (
     ${READLINE_LDFLAGS}
 )
 
-# configure_file(
-#     include/config.h.in
-#     include/config.h
-#     @ONLY
-# )
+# All libs
+add_library(parent_libs INTERFACE)
+target_link_libraries(parent_libs INTERFACE program dataStructures builtinCommands)
 
 # Testing
 enable_testing ()
-set(LIB_FILES   ${SRC_FILES})
-add_library (libs STATIC ${LIB_FILES})
 add_subdirectory (tests)
