@@ -2,7 +2,17 @@
 
 #include <stdio.h>
 
-int main_help(int argc, char **argv)
+void help_pre ()
+{
+    // khoi tao?
+}
+
+void help_post ()
+{
+    // giai phong bo nho?
+}
+
+int help_main(int argc, char **argv)
 {
     puts(
 "Yar: Simple scripting language."
@@ -14,5 +24,11 @@ int main_help(int argc, char **argv)
 );
     fflush (stdout);
     return 0;
+}
+
+__attribute__((constructor))
+static void __help_register (void)
+{
+    builtin_command_register("help", help_main, help_pre, help_post);
 }
 

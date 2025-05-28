@@ -11,13 +11,16 @@ add_compile_definitions(_GNU_SOURCE)
 find_package (PkgConfig REQUIRED)
 pkg_check_modules (READLINE REQUIRED readline)
 
+file(GLOB BUILTIN_CMD_SRCS "builtin_commands/*.c")
 set(SRC_FILES   yar.c 
-                yar_parser.c
                 yar_error.c
                 yar_env.c
                 yar_exec.c
                 yar_job.c
                 yar_shell.c
+                yar_lexer.c
+                yar_parser.tab.c
+                ${BUILTIN_CMD_SRCS}
                 data_structure/string.c
                 data_structure/environ.c
             )
