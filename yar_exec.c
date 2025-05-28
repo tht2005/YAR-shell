@@ -70,11 +70,9 @@ void launch_job (job *j, int foreground) {
     if (__cnt_processes (j) == 1
             && j->first_process->cnt_assignment == j->first_process->argc) {
 
-        fprintf (stderr, "DEBUG: you just assign variables!\n");
-
         process *p = j->first_process;
         for (int i = 0; i < (p->cnt_assignment); ++i) {
-            if (putenv (p->argv[i])) {
+            if (putenv ( strdup(p->argv[i]) )) {
                 perror ("putenv");
                 exit (1);
             } 
