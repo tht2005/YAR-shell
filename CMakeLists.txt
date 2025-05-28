@@ -26,6 +26,7 @@ set(SRC_FILES   yar.c
                 yar_lexer.c
                 yar_parser.tab.c
                 yar_interpreter.c
+                yar_ast.c
             )
 add_library (program STATIC ${SRC_FILES})
 add_executable(yar ${SRC_FILES})

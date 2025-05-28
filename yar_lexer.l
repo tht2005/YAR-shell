@@ -1,0 +1,511 @@
+%{
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "data_structure/string.h"
+#include "yar_parser.tab.h"
+
+#ifdef DEBUG
+#define DEBUG_PRINT(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define DEBUG_PRINT(...) ((void)0)
+#endif
+
+// from yar_parser.h
+void *stack_top ();
+void stack_push (void*);
+void stack_pop ();
+
+%}
+
+%option             noyywrap
+%option             yylineno
+%option             stack
+%option             bison-bridge 
+%option             header-file="yar_lexer.h"
+%option             outfile="yar_lexer.c"
+
+DIGIT               [0-9]
+LETTER              [a-zA-Z_]
+ALNUM               [a-zA-Z0-9_]
+WHITESPACE          [ \t]
+IDENTIFIER          {LETTER}{ALNUM}*
+
+%x                  DOUBLE_QUOTE
+
+/*
+#.*$                        {
+                            }
+
+{WHITESPACE}+               { 
+                            }
+
+<<EOF>>                     { 
+                                return ENDOFFILE; 
+                            }
+
+"="                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('=');
+                                    return token;
+                                }
+                                return EQUAL; 
+                            }
+
+"<"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('<');
+                                    return token;
+                                }
+                                return LESS; 
+                            }
+
+">"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('>');
+                                    return token;
+                                }
+                                return GREATER; 
+                            }
+
+">>"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('>'); unput('>');
+                                    return token;
+                                }
+                                return GREATER_DOUBLE; 
+                            }
+
+"<&"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('&'); unput('<');
+                                    return token;
+                                }
+                                return LESS_AND; 
+                            }
+
+">&"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('&'); unput('>');
+                                    return token;
+                                }
+                                return GREATER_AND; 
+                            }
+
+"&>"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('>'); unput('&');
+                                    return token;
+                                }
+                                return AND_GREATER; 
+                            }
+
+"&>>"                       { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('>'); unput('>'); unput('&');
+                                    return token;
+                                }
+                                return AND_GREATER_DOUBLE; 
+                            }
+
+"<>"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('>'); unput('<');
+                                    return token;
+                                }
+                                return LESS_GREATER; 
+                            }
+
+"!"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('!');
+                                    return token;
+                                }
+                                return BANG; 
+                            }
+
+"|"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('|');
+                                    return token;
+                                }
+                                return OR; 
+                            }
+
+"&"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('&');
+                                    return token;
+                                }
+                                return AND; 
+                            }
+
+"||"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('|'); unput('|');
+                                    return token;
+                                }
+                                return OR_DOUBLE; 
+                            }
+
+"&&"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('&'); unput('&');
+                                    return token;
+                                }
+                                return AND_DOUBLE; 
+                            }
+
+"+"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('+');
+                                    return token;
+                                }
+                                return PLUS; 
+                            }
+
+"-"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('-');
+                                    return token;
+                                }
+                                return MINUS; 
+                            }
+
+"*"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('*');
+                                    return token;
+                                }
+                                return TIMES; 
+                            }
+
+"/"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('/');
+                                    return token;
+                                }
+                                return DIVIDE; 
+                            }
+
+"(("                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('('); unput('(');
+                                    return token;
+                                }
+                                return ROUND_LPAREN_DOUBLE; 
+                            }
+
+"))"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput(')'); unput(')');
+                                    return token;
+                                }
+                                return ROUND_RPAREN_DOUBLE; 
+                            }
+
+"[["                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('['); unput('[');
+                                    return token;
+                                }
+                                return SQUARE_LPAREN_DOUBLE; 
+                            }
+
+"]]"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput(']'); unput(']');
+                                    return token;
+                                }
+                                return SQUARE_RPAREN_DOUBLE; 
+                            }
+
+"("                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('(');
+                                    return token;
+                                }
+                                return ROUND_LPAREN; 
+                            }
+
+")"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput(')');
+                                    return token;
+                                }
+                                return ROUND_RPAREN; 
+                            }
+
+"["                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('[');
+                                    return token;
+                                }
+                                return SQUARE_LPAREN; 
+                            }
+
+"]"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput(']');
+                                    return token;
+                                }
+                                return SQUARE_RPAREN; 
+                            }
+
+"{"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('{');
+                                    return token;
+                                }
+                                return CURLY_LPAREN; 
+                            }
+
+"}"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput('}');
+                                    return token;
+                                }
+                                return CURLY_RPAREN; 
+                            }
+
+";;"                        { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput(';'); unput(';');
+                                    return token;
+                                }
+                                return SEMICOLON_DOUBLE; 
+                            }
+
+";"                         { 
+                                if (in_word) {
+                                    int token = finish_word();
+                                    unput(';');
+                                    return token;
+                                }
+                                return SEMICOLON; 
+                            }
+
+"if"                        { 
+                                if (in_word) {
+                                    add_to_word(yytext);
+                                } else {
+                                    return IF;
+                                }
+                            }
+
+"then"                      { 
+                                if (in_word) {
+                                    add_to_word(yytext);
+                                } else {
+                                    return THEN;
+                                }
+                            }
+
+"elif"                      { 
+                                if (in_word) {
+                                    add_to_word(yytext);
+                                } else {
+                                    return ELIF;
+                                }
+                            }
+
+"else"                      { 
+                                if (in_word) {
+                                    add_to_word(yytext);
+                                } else {
+                                    return ELSE;
+                                }
+                            }
+
+"fi"                        { 
+                                if (in_word) {
+                                    add_to_word(yytext);
+                                } else {
+                                    return FI;
+                                }
+                            }
+
+"for"                       { 
+                                if (in_word) {
+                                    add_to_word(yytext);
+                                } else {
+                                    return FOR;
+                                }
+                            }
+
+"in"                        { 
+                                if (in_word) {
+                                    add_to_word(yytext);
+                                } else {
+                                    return IN;
+                                }
+                            }
+
+"do"                        { 
+                                if (in_word) {
+                                    add_to_word(yytext);
+                                } else {
+                                    return DO;
+                                }
+                            }
+
+"done"                      { 
+                                if (in_word) {
+                                    add_to_word(yytext);
+                                } else {
+                                    return DONE;
+                                }
+                            }
+
+"while"                     { 
+                                return WHILE;
+                            }
+
+"until"                     { 
+                                return UNTIL;
+                            }
+
+"case"                      { 
+                                return CASE;
+                            }
+
+"esac"                      { 
+                                return ESAC;
+                            }
+
+"break"                     { 
+                                return BREAK;
+                            }
+
+"continue"                  { 
+                                return CONTINUE;
+                            }
+
+"return"                    { 
+                                return RETURN;
+                            }
+
+"exit"                      { 
+                                return EXIT;
+                            }
+
+"exec"                      { 
+                                return EXEC;
+                            }
+
+"trap"                      { 
+                                return TRAP;
+                            }
+
+"time"                      { 
+                                return TIME;
+                            }
+
+"coproc"                    { 
+                            }
+*/
+
+%%
+
+{WHITESPACE}+ {
+    return WHITESPACE;
+}
+{IDENTIFIER}"=" {
+    yylval->str = new_string_2(yytext);
+    return IDENTIFIER_ASSIGNMENT;
+}
+
+\n          {
+    ++yylineno;
+    return NEWLINE;
+}
+;           {
+    return SEMICOLON;
+}
+;;          {
+    return SEMICOLON_DOUBLE;
+}
+
+"<"         {
+    return LESS;
+}
+{DIGIT}+"<" {
+    return NUM_LESS;
+}
+">"         {
+    return GREATER;
+}
+{DIGIT}+">" {
+    return NUM_GREATER;
+}
+">>"        {
+    return GREATER_DOUBLE;
+}
+"&>"        {
+    return AND_GREATER;
+}
+">&"        {
+    return GREATER_AND;
+}
+"&>>"       {
+    return AND_GREATER_DOUBLE;
+}
+"<&"        {
+    return LESS_AND;
+}
+{DIGIT}+"<&"    {
+    return NUM_LESS_AND;
+}
+{DIGIT}+">&"    {
+    return NUM_GREATER_AND;
+}
+
+\"([^\\\"]|\\.)*\"      {
+                            yylval->str = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
+                            return STRING;
+                        }
+\'([^\\\']|\\.)*\'      {
+                            yylval->str = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
+                            return STRING;
+                        }
+[^ \=\t\r\n\"\'()<>&|]+ {
+                            yylval->str = new_string_2(yytext);
+                            return STRING;
+                        }
+
+.                       {
+                            fprintf (stderr, "Unexpected character: %c\n", yytext[0]);
+                        }
+
+%%
+

@@ -1,6 +1,6 @@
 #include "yar.h"
 #include "yar_env.h"
-#include "yar_parser.h"
+#include "yar_interpreter.h"
 #include "yar_shell.h"
 
 #include <unistd.h>
@@ -14,8 +14,7 @@
 #include "data_structure/string.h"
 
 void run (char *source) {
-    init_parser (source);
-    test ();
+    interpret(source);
 }
 
 // void run_file (char *fp) {
