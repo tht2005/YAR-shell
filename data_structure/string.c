@@ -85,7 +85,7 @@ string string_append_back (string str, const char *a) {
     return str;
 }
 
-string new_substr (string begin, string end) {
+string new_substr (const char *begin, const char *end) {
     string s = new_string ();
     for (; begin != end; ++begin) {
         s = string_push_back (s, *begin);
@@ -93,8 +93,18 @@ string new_substr (string begin, string end) {
     return s;
 }
 
-string new_string_2 (char *str)
+string new_string_2 (const char *str)
 {
     return new_substr (str, str + strlen (str));
+}
+
+int string_back (string s)
+{
+    size_t len = string_length (s);
+    if (len == 0) {
+        fprintf (stderr, "Yar: Error: string back called when s is empty!\n");
+        return -1;
+    }
+    return s[len - 1];
 }
 

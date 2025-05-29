@@ -20,11 +20,12 @@ typedef struct {
 typedef char* string;
 
 string new_string ();
-string new_string_2 (char *);
+string new_string_2 (const char *);
 
 void free_string (string s);
 
 size_t string_length (string s);
+int string_back (string s);
 
 string string_push_back (string s, char c);
 
@@ -34,6 +35,6 @@ string ptr_to_string (void *ptr);
 void *string_to_ptr (string s);
 
 string string_append_back (string str, const char* a);
-string new_substr (string begin, string end);
+string new_substr (const char *begin, const char *end);
 
 #endif
