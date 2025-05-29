@@ -7,8 +7,7 @@
 #include "yar_ast.h"
 #include "yar_parser.tab.h"
 #include "yar_debug.h"
-
-string string_substitution_handler (const char *input);
+#include "yar_substitution.h"
 
 %}
 
@@ -497,6 +496,13 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             yylval->str_frag = make_string_fragment(0,
                                                     new_string_2(yytext) );
                                                     
+                            return STRING;
+                        }
+
+\${IDENTIFIER}          {
+                            DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
+                            yylval->str_frag = make_string_fragment(0,
+                                                    variable_substitution_handler(yytext));
                             return STRING;
                         }
 

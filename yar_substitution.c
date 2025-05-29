@@ -31,6 +31,18 @@ string __get_capture (const char *input, regmatch_t pmatch)
     return new_substr (input + start, input + end);
 }
 
+string __get_environment_variable (const char *name)
+{
+    return new_string_2 (getenv (name));
+}
+
+// ${IDENTIFIER}
+string variable_substitution_handler (const char *input)
+{
+    // skip first character ( $ )
+    return __get_environment_variable (input + 1);
+}
+
 string string_substitution_handler (const char *input)
 {
     regmatch_t pmatch[16];
@@ -41,7 +53,7 @@ string string_substitution_handler (const char *input)
     {
         string name = __get_capture(input, pmatch[1]);
         DEBUG_PRINT ("debug: variable substitution: `%s`\n", name);
-        result = new_string_2 (getenv(name));
+        result = __get_environment_variable (name);
         free_string(name);
     }
     // default value (if unset or null) ${VAR:-word}
