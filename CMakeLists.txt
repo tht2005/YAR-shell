@@ -5,6 +5,13 @@ project(yar VERSION 1.0)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DEBUG)
+else()
+    add_compile_options(-O2 -march=native -flto)
+    add_link_options(-flto)
+endif()
+
 add_compile_definitions(STRING_INIT_BUF=16)
 # add_compile_definitions(_GNU_SOURCE)
 
@@ -27,6 +34,7 @@ set(SRC_FILES   yar.c
                 yar_parser.tab.c
                 yar_interpreter.c
                 yar_ast.c
+                yar_substitution.c
             )
 add_library (program STATIC ${SRC_FILES})
 add_executable(yar ${SRC_FILES})
