@@ -72,17 +72,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef DEBUG
-#define DEBUG_PRINT(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define DEBUG_PRINT(...) ((void)0)
-#endif
+#include "yar_debug.h"
 
 int yylex(void);
 void yyerror(const char *s);
 
-#line 86 "yar_parser.tab.c"
+#line 81 "yar_parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -529,10 +524,10 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    61,    61,    62,    63,    64,    71,    72,    73,    76,
-      77,    80,    82,    84,    87,    88,    92,    99,   100,   104,
-     110,   115,   120,   125,   130,   135,   140,   145,   150,   155,
-     160,   168,   169,   170,   173,   176,   178
+       0,    58,    58,    59,    60,    61,    68,    69,    70,    73,
+      74,    77,    79,    81,    84,    85,    89,    96,    97,   101,
+     107,   112,   117,   122,   127,   132,   137,   142,   147,   152,
+     157,   165,   166,   167,   170,   173,   175
 };
 #endif
 
@@ -1505,140 +1500,140 @@ yyreduce:
   switch (yyn)
     {
   case 15: /* assignment_list: assignment_list assignment  */
-#line 88 "yar_parser.y"
+#line 85 "yar_parser.y"
                                                                     {
                                                                         // construct assignment list here
                                                                     }
-#line 1513 "yar_parser.tab.c"
+#line 1508 "yar_parser.tab.c"
     break;
 
   case 16: /* assignment: PREFIX_ASSIGNMENT IDENTIFIER_ASSIGNMENT STRING  */
-#line 92 "yar_parser.y"
+#line 89 "yar_parser.y"
                                                                     {
                                                                         (yyval.str) = new_string_2 ((yyvsp[-1].str));
-                                                                        (yyval.str) = string_append_back ((yyval.str), (yyvsp[0].str));
+                                                                        (yyval.str) = string_append_back ((yyval.str), (yyvsp[0].str_frag).value);
                                                                         DEBUG_PRINT("debug: assignment: `%s`\n", (yyval.str));
                                                                     }
-#line 1523 "yar_parser.tab.c"
+#line 1518 "yar_parser.tab.c"
     break;
 
   case 18: /* arguments_and_redirections_list: arguments_and_redirections_list STRING  */
-#line 101 "yar_parser.y"
+#line 98 "yar_parser.y"
                                                                                         {
-                                                                                            DEBUG_PRINT("debug: argument `%s` append to list\n", (yyvsp[0].str));
+                                                                                            DEBUG_PRINT("debug: argument `%s` append to list\n", (yyvsp[0].str_frag).value);
                                                                                         }
-#line 1531 "yar_parser.tab.c"
+#line 1526 "yar_parser.tab.c"
     break;
 
   case 19: /* arguments_and_redirections_list: arguments_and_redirections_list redirection  */
-#line 105 "yar_parser.y"
+#line 102 "yar_parser.y"
                                                                                         {
-                                                                                            DEBUG_PRINT("debug: redirection append to list\n", (yyvsp[0].redirection));
+                                                                                            DEBUG_PRINT("debug: redirection append to list\n");
                                                                                         }
-#line 1539 "yar_parser.tab.c"
+#line 1534 "yar_parser.tab.c"
     break;
 
   case 20: /* redirection: PREFIX_REDIRECTION LESS STRING  */
-#line 111 "yar_parser.y"
+#line 108 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (LESS, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (LESS, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1548 "yar_parser.tab.c"
+#line 1543 "yar_parser.tab.c"
     break;
 
   case 21: /* redirection: PREFIX_REDIRECTION NUM_LESS STRING  */
-#line 116 "yar_parser.y"
+#line 113 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (NUM_LESS, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (NUM_LESS, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1557 "yar_parser.tab.c"
+#line 1552 "yar_parser.tab.c"
     break;
 
   case 22: /* redirection: PREFIX_REDIRECTION GREATER STRING  */
-#line 121 "yar_parser.y"
+#line 118 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (GREATER, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (GREATER, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1566 "yar_parser.tab.c"
+#line 1561 "yar_parser.tab.c"
     break;
 
   case 23: /* redirection: PREFIX_REDIRECTION NUM_GREATER STRING  */
-#line 126 "yar_parser.y"
+#line 123 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (NUM_GREATER, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (NUM_GREATER, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1575 "yar_parser.tab.c"
+#line 1570 "yar_parser.tab.c"
     break;
 
   case 24: /* redirection: PREFIX_REDIRECTION GREATER_DOUBLE STRING  */
-#line 131 "yar_parser.y"
+#line 128 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_DOUBLE, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (GREATER_DOUBLE, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_DOUBLE, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1584 "yar_parser.tab.c"
+#line 1579 "yar_parser.tab.c"
     break;
 
   case 25: /* redirection: PREFIX_REDIRECTION AND_GREATER STRING  */
-#line 136 "yar_parser.y"
+#line 133 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (AND_GREATER, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (AND_GREATER, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1593 "yar_parser.tab.c"
+#line 1588 "yar_parser.tab.c"
     break;
 
   case 26: /* redirection: PREFIX_REDIRECTION GREATER_AND STRING  */
-#line 141 "yar_parser.y"
+#line 138 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_AND, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (GREATER_AND, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_AND, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (GREATER_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1602 "yar_parser.tab.c"
+#line 1597 "yar_parser.tab.c"
     break;
 
   case 27: /* redirection: PREFIX_REDIRECTION AND_GREATER_DOUBLE STRING  */
-#line 146 "yar_parser.y"
+#line 143 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER_DOUBLE, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (AND_GREATER_DOUBLE, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER_DOUBLE, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (AND_GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1611 "yar_parser.tab.c"
+#line 1606 "yar_parser.tab.c"
     break;
 
   case 28: /* redirection: PREFIX_REDIRECTION LESS_AND STRING  */
-#line 151 "yar_parser.y"
+#line 148 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS_AND, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (LESS_AND, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS_AND, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (LESS_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1620 "yar_parser.tab.c"
+#line 1615 "yar_parser.tab.c"
     break;
 
   case 29: /* redirection: PREFIX_REDIRECTION NUM_LESS_AND STRING  */
-#line 156 "yar_parser.y"
+#line 153 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS_AND, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (NUM_LESS_AND, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS_AND, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (NUM_LESS_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1629 "yar_parser.tab.c"
+#line 1624 "yar_parser.tab.c"
     break;
 
   case 30: /* redirection: PREFIX_REDIRECTION NUM_GREATER_AND STRING  */
-#line 161 "yar_parser.y"
+#line 158 "yar_parser.y"
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER_AND, (yyvsp[0].str));
-                                                                        (yyval.redirection) = make_redirection (NUM_GREATER_AND, (yyvsp[0].str));
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER_AND, (yyvsp[0].str_frag).value);
+                                                                        (yyval.redirection) = make_redirection (NUM_GREATER_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1638 "yar_parser.tab.c"
+#line 1633 "yar_parser.tab.c"
     break;
 
 
-#line 1642 "yar_parser.tab.c"
+#line 1637 "yar_parser.tab.c"
 
       default: break;
     }
@@ -1875,7 +1870,7 @@ yypushreturn:
 #undef yyvs
 #undef yyvsp
 #undef yystacksize
-#line 181 "yar_parser.y"
+#line 178 "yar_parser.y"
 
 
 void yyerror(const char *s) {

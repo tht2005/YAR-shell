@@ -10,12 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef DEBUG
-#define DEBUG_PRINT(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define DEBUG_PRINT(...) ((void)0)
-#endif
+#include "yar_debug.h"
 
 int yylex(void);
 void yyerror(const char *s);
@@ -26,6 +21,7 @@ void yyerror(const char *s);
 }
 %union {
     string str;
+    string_fragment str_frag;
     redirection redirection;
 }
 
@@ -40,7 +36,8 @@ void yyerror(const char *s);
 %token PREFIX_SUBSTITUTION_COMMAND 
 %token PREFIX_SUBSTITUTION_ARITHMETIC 
 
-%token <str> IDENTIFIER_ASSIGNMENT STRING
+%token <str> IDENTIFIER_ASSIGNMENT
+%token <str_frag> STRING
 %token SEMICOLON SEMICOLON_DOUBLE
 %token NEWLINE
 
@@ -91,7 +88,7 @@ assignment_list:    /* empty */
                ;
 assignment:     PREFIX_ASSIGNMENT IDENTIFIER_ASSIGNMENT STRING      {
                                                                         $$ = new_string_2 ($2);
-                                                                        $$ = string_append_back ($$, $3);
+                                                                        $$ = string_append_back ($$, $3.value);
                                                                         DEBUG_PRINT("debug: assignment: `%s`\n", $$);
                                                                     }
           ;
@@ -99,68 +96,68 @@ assignment:     PREFIX_ASSIGNMENT IDENTIFIER_ASSIGNMENT STRING      {
 arguments_and_redirections_list:    /* empty */
                                |    arguments_and_redirections_list STRING
                                                                                         {
-                                                                                            DEBUG_PRINT("debug: argument `%s` append to list\n", $2);
+                                                                                            DEBUG_PRINT("debug: argument `%s` append to list\n", $2.value);
                                                                                         }
                                |    arguments_and_redirections_list redirection
                                                                                         {
-                                                                                            DEBUG_PRINT("debug: redirection append to list\n", $2);
+                                                                                            DEBUG_PRINT("debug: redirection append to list\n");
                                                                                         }
                                ;
 
 redirection:    PREFIX_REDIRECTION LESS STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS, $3);
-                                                                        $$ = make_redirection (LESS, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS, $3.value);
+                                                                        $$ = make_redirection (LESS, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION NUM_LESS STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS, $3);
-                                                                        $$ = make_redirection (NUM_LESS, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS, $3.value);
+                                                                        $$ = make_redirection (NUM_LESS, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION GREATER STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER, $3);
-                                                                        $$ = make_redirection (GREATER, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER, $3.value);
+                                                                        $$ = make_redirection (GREATER, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION NUM_GREATER STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER, $3);
-                                                                        $$ = make_redirection (NUM_GREATER, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER, $3.value);
+                                                                        $$ = make_redirection (NUM_GREATER, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION GREATER_DOUBLE STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_DOUBLE, $3);
-                                                                        $$ = make_redirection (GREATER_DOUBLE, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_DOUBLE, $3.value);
+                                                                        $$ = make_redirection (GREATER_DOUBLE, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION AND_GREATER STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER, $3);
-                                                                        $$ = make_redirection (AND_GREATER, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER, $3.value);
+                                                                        $$ = make_redirection (AND_GREATER, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION GREATER_AND STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_AND, $3);
-                                                                        $$ = make_redirection (GREATER_AND, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_AND, $3.value);
+                                                                        $$ = make_redirection (GREATER_AND, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION AND_GREATER_DOUBLE STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER_DOUBLE, $3);
-                                                                        $$ = make_redirection (AND_GREATER_DOUBLE, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER_DOUBLE, $3.value);
+                                                                        $$ = make_redirection (AND_GREATER_DOUBLE, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION LESS_AND STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS_AND, $3);
-                                                                        $$ = make_redirection (LESS_AND, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS_AND, $3.value);
+                                                                        $$ = make_redirection (LESS_AND, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION NUM_LESS_AND STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS_AND, $3);
-                                                                        $$ = make_redirection (NUM_LESS_AND, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS_AND, $3.value);
+                                                                        $$ = make_redirection (NUM_LESS_AND, $3.value);
                                                                     }
            |    PREFIX_REDIRECTION NUM_GREATER_AND STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER_AND, $3);
-                                                                        $$ = make_redirection (NUM_GREATER_AND, $3);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER_AND, $3.value);
+                                                                        $$ = make_redirection (NUM_GREATER_AND, $3.value);
                                                                     }
            /* and more ... */
            ;

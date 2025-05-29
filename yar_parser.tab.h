@@ -48,7 +48,7 @@ extern int yydebug;
 #line 5 "yar_parser.y"
 
     #include "yar_ast.h"
-#line 24 "yar_parser.y"
+#line 19 "yar_parser.y"
 
     #include "data_structure/string.h"
 
@@ -101,12 +101,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 27 "yar_parser.y"
+#line 22 "yar_parser.y"
 
     string str;
+    string_fragment str_frag;
     redirection redirection;
 
-#line 110 "yar_parser.tab.h"
+#line 111 "yar_parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

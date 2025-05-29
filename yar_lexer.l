@@ -4,18 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "data_structure/string.h"
+#include "yar_ast.h"
 #include "yar_parser.tab.h"
+#include "yar_debug.h"
 
-#ifdef DEBUG
-#define DEBUG_PRINT(...) fprintf(stderr, __VA_ARGS__)
-#else
-#define DEBUG_PRINT(...) ((void)0)
-#endif
-
-// from yar_parser.h
-void *stack_top ();
-void stack_push (void*);
-void stack_pop ();
+string string_substitution_handler (const char *input);
 
 %}
 
@@ -491,15 +484,26 @@ IDENTIFIER          {LETTER}{ALNUM}*
 }
 
 \"([^\\\"]|\\.)*\"      {
-                            yylval->str = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
+                            yylval->str_frag = make_string_fragment(1,
+                                                    new_substr (yytext + 1, yytext + strlen(yytext) - 1) );
                             return STRING;
                         }
-\'([^\\\']|\\.)*\'      {
-                            yylval->str = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
+\'([^\'])*\'      {
+                            yylval->str_frag = make_string_fragment(1,
+                                                    new_substr (yytext + 1, yytext + strlen(yytext) - 1) );
                             return STRING;
                         }
-[^ \=\t\r\n\"\'()<>&|]+ {
-                            yylval->str = new_string_2(yytext);
+[^ \=\t\r\n\"\'()<>&|$]+ {
+                            yylval->str_frag = make_string_fragment(0,
+                                                    new_string_2(yytext) );
+                                                    
+                            return STRING;
+                        }
+
+\$\{([^\\}]|\\.)*\}     {
+                            DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
+                            yylval->str_frag = make_string_fragment(0,
+                                                    string_substitution_handler(yytext));
                             return STRING;
                         }
 
