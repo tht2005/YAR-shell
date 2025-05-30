@@ -5,6 +5,9 @@
 #include "yar_debug.h"
 #include "yar_parser.tab.h"
 #include "yar_lexer.h"
+
+#include "libglob/glob.h"
+
 #include <string.h>
 #include <ctype.h>
 
@@ -60,17 +63,11 @@ int token_skip_whitespace_newline ()
     return token;
 }
 
-void string_list_push_back (string_list **head, string_list **tail, string *str)
+glob_t glob (const char *pattern)
 {
-    string_list *elem = new_string_list (*str);
-    if (*head) {
-        (*tail)->next = elem;
-        (*tail) = elem;
-    }
-    else {
-        (*head) = (*tail) = elem;
-    }
-    *str = NULL;
+    glob_t results;
+    g_glob (pattern, GLOB_BRACE | GLOB_MARK | GLOB_NOCHECK | GLOB_TILDE, NULL, &results);
+    return results;
 }
 
 string_list *split_word (const char *input)
@@ -100,84 +97,77 @@ string_list *interpret_string (int flags)
     for (; token == STRING; token = token_next())
     {
         string_fragment str_frag = yylval.str_frag;
-        if (string_fragment_tail == NULL) {
-            string_fragment_head = string_fragment_tail = new_string_fragment_list (str_frag);
-        }
-        else {
-            string_fragment_tail->next = new_string_fragment_list (str_frag);
-            string_fragment_tail = string_fragment_tail->next;
-        }
+        string_fragment_list_push_back (&string_fragment_head, &string_fragment_tail, &str_frag);
     }
 
     string_list *string_list_head = NULL, *string_list_tail = NULL;
-    string last_string = NULL;
+    string current_string = NULL;
 
     for (string_fragment_list *ptr = string_fragment_head; ptr; ptr = ptr->next)
     {
-        // do not free this
-        string content = ptr->str_frag.value;
-
-        if (ptr->str_frag.quoted)
+        switch (ptr->str_frag.type)
         {
-            DEBUG_PRINT("debug: string_fragment quoted: `%s`\n", content);
-            if (last_string)
-            {
-                last_string = string_append_back(last_string, content);
-            }
-            else {
-                last_string = new_string_2(content);
-            }
-        }
-        else {
-            DEBUG_PRINT("debug: start un-quoted string: `%s`\n", ptr->str_frag.value);
-            string_list *head = split_word(ptr->str_frag.value);
-            assert (head != NULL);
-            string_list *string_list_ptr = head;
-            last_string = last_string ? string_append_back (last_string, string_list_ptr->str) : new_string_2 (string_list_ptr->str);
-            DEBUG_PRINT("debug: 1st last_string: `%s`\n", last_string);
-            while (string_list_ptr->next)
-            {
-                string_list_push_back (&string_list_head, &string_list_tail, &last_string);
-                string_list_ptr = string_list_ptr->next;
-                last_string = new_string_2(string_list_ptr->str);
-                if (! string_list_ptr->next) {
-                    break;
+            case STR_FRAG_QUOTED:
+                DEBUG_PRINT("debug: string_fragment quoted: `%s`\n", ptr->str_frag.value);
+                current_string = string_append_back (current_string, ptr->str_frag.value);
+                break;
+            case STR_FRAG_NON_QUOTED:
+                DEBUG_PRINT("debug: string_fragment unquoted: `%s`\n", ptr->str_frag.value);
+                string_list *head = split_word(ptr->str_frag.value);
+                assert (head != NULL);
+                string_list *string_list_ptr = head;
+
+                current_string = string_append_back (current_string, string_list_ptr->str);
+
+                while (string_list_ptr->next)
+                {
+                    string_list_push_back (&string_list_head, &string_list_tail, &current_string);
+                    string_list_ptr = string_list_ptr->next;
+
+                    current_string = string_append_back (current_string, string_list_ptr->str);
+
+                    if (! string_list_ptr->next) {
+                        break;
+                    }
                 }
-                DEBUG_PRINT("debug: ?th last_string: `%s`\n", last_string);
-            }
-            // check if string_list_ptr->str_frag.value have whitespace at the very end
-            // so i just finish the string
-            if (isspace(string_back(content)))
-            {
-                DEBUG_PRINT("the un-quoted string have space at end, so end it\n");
-                string_list_push_back (&string_list_head, &string_list_tail, &last_string);
-            }
-            free_string_list (head);
+                // check if ptr->str_frag.value have whitespace at the very end
+                // so i just finish the string
+                if (isspace(string_back(ptr->str_frag.value)))
+                {
+                    string_list_push_back (&string_list_head, &string_list_tail, &current_string);
+                }
+                free_string_list (head);
+                break;
+            default:
+                assert (0);
         }
     }
-    if (last_string)
+    if (current_string)
     {
-        DEBUG_PRINT("debug: last last_string: `%s`\n", last_string);
-        string_list_push_back (&string_list_head, &string_list_tail, &last_string);
+        string_list_push_back (&string_list_head, &string_list_tail, &current_string);
     }
 
+    // do glob
+    string_list *result = NULL, *result_tail = NULL;
     for (string_list *ptr = string_list_head; ptr; ptr = ptr->next)
     {
-        DEBUG_PRINT("debug: string: `%s`\n", ptr->str);
+        glob_t glob_results = glob (ptr->str);
+        for (size_t i = 0; i < glob_results.gl_pathc; ++i) {
+            string tmp = new_string_2 (glob_results.gl_pathv[i]);
+            string_list_push_back (&result, &result_tail, &tmp);
+        }
+        g_globfree (&glob_results);
     }
 
-    // free string_fragment_list
-    for (string_fragment_list *ptr = string_fragment_head, *nxt; ptr; )
-    {
-        nxt = ptr->next;
-        free_string (ptr->str_frag.value);
-        free (ptr);
-        ptr = nxt;
-    }
-
+    DEBUG_PRINT ("before glob\n");
+    debug_string_list (string_list_head);
+    DEBUG_PRINT ("after glob\n");
+    debug_string_list (result);
+    free_string_fragment_list (string_fragment_head);
+    free_string_list (string_list_head);
     // yypush_parse(parser, 0, &yylval);
     // yypstate_delete (parser);
-    return string_list_head;
+    return result;
 }
 
 void interpret_command ()
@@ -254,7 +244,7 @@ void interpret(char *source)
     // yypstate_delete (parser);
     token = token_skip_whitespace_newline();
     // interpret_command();
-    interpret_string(0);
+    free_string_list (interpret_string(0));
 
     // yypush_parse(parser, 0, &yylval);
     yy_delete_buffer(buffer);

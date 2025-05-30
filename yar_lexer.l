@@ -9,6 +9,8 @@
 #include "yar_debug.h"
 #include "yar_substitution.h"
 
+string __add_escape_character (string input);
+
 %}
 
 %option             noyywrap
@@ -483,17 +485,19 @@ IDENTIFIER          {LETTER}{ALNUM}*
 }
 
 \"([^\\\"]|\\.)*\"      {
-                            yylval->str_frag = make_string_fragment(1,
-                                                    new_substr (yytext + 1, yytext + strlen(yytext) - 1) );
+                            string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
+                            content = __add_escape_character (content);
+                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
                             return STRING;
                         }
-\'([^\'])*\'      {
-                            yylval->str_frag = make_string_fragment(1,
-                                                    new_substr (yytext + 1, yytext + strlen(yytext) - 1) );
+\'([^\\\']|\\.)*\'      {
+                            string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
+                            content = __add_escape_character (content);
+                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
                             return STRING;
                         }
 [^ \=\t\r\n\"\'()<>&|$]+ {
-                            yylval->str_frag = make_string_fragment(0,
+                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
                                                     new_string_2(yytext) );
                                                     
                             return STRING;
@@ -501,14 +505,14 @@ IDENTIFIER          {LETTER}{ALNUM}*
 
 \${IDENTIFIER}          {
                             DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
-                            yylval->str_frag = make_string_fragment(0,
+                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
                                                     variable_substitution_handler(yytext));
                             return STRING;
                         }
 
 \$\{([^\\}]|\\.)*\}     {
                             DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
-                            yylval->str_frag = make_string_fragment(0,
+                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
                                                     string_substitution_handler(yytext));
                             return STRING;
                         }
@@ -518,4 +522,23 @@ IDENTIFIER          {LETTER}{ALNUM}*
                         }
 
 %%
+
+string __add_escape_character (string input)
+{
+    string res = new_string ();
+    size_t len = string_length (input);
+    for (size_t i = 0; i < len; ++i)
+    {
+        res = string_push_back (res, '\\');
+        if (input[i] == '\\')
+        {
+            ++i;
+        }
+        if (i < len) {
+            res = string_push_back (res, input[i]);
+        }
+    }
+    free_string (input);
+    return res;
+}
 

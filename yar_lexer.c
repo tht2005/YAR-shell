@@ -411,13 +411,13 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static const flex_int16_t yy_accept[47] =
+static const flex_int16_t yy_accept[48] =
     {   0,
         0,    0,    0,    0,   24,   19,    1,    3,   22,   22,
        22,   22,   22,   19,    4,    6,    8,   19,   23,   19,
-        1,    0,   17,    0,   20,    0,   11,    0,   18,   19,
-        7,    9,    5,   14,   12,   10,   19,    2,   20,    0,
-        0,   21,   13,   15,   16,    0
+        1,    0,   17,    0,   20,    0,   11,    0,   18,    0,
+       19,    7,    9,    5,   14,   12,   10,   19,    2,   20,
+        0,    0,   21,   13,   15,   16,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -458,48 +458,50 @@ static const YY_CHAR yy_meta[18] =
         2,    2,    2,    1,    1,    1,    1
     } ;
 
-static const flex_int16_t yy_base[52] =
+static const flex_int16_t yy_base[53] =
     {   0,
-        0,    0,    0,    0,   61,    0,   58,   62,   62,   13,
-        5,   46,   50,   20,   47,   49,   13,   25,   62,    0,
-       53,   17,   62,   51,   16,   21,   40,   44,   62,    0,
-       35,   20,    0,   62,   62,   62,    0,   62,   26,   26,
-       21,   62,   62,   62,   62,   62,   43,   22,   45,   47,
-       49
+        0,    0,    0,    0,   64,    0,   61,   65,   65,   13,
+        5,   49,   12,   20,   51,   53,   17,   25,   65,    0,
+       57,   17,   65,   55,   26,    8,   44,   28,   65,   53,
+        0,   48,   38,    0,   65,   65,   65,    0,   65,   32,
+       27,   35,   65,   65,   65,   65,   65,   46,   25,   48,
+       50,   52
     } ;
 
-static const flex_int16_t yy_def[52] =
+static const flex_int16_t yy_def[53] =
     {   0,
-       46,    1,   47,   47,   46,   48,   46,   46,   46,   49,
-       46,   46,   50,   48,   48,   46,   46,   48,   46,   48,
-       46,   49,   46,   49,   46,   51,   46,   50,   46,   14,
-       46,   46,   48,   46,   46,   46,   18,   46,   46,   51,
-       51,   46,   46,   46,   46,    0,   46,   46,   46,   46,
-       46
+       47,    1,   48,   48,   47,   49,   47,   47,   47,   50,
+       47,   47,   51,   49,   49,   47,   47,   49,   47,   49,
+       47,   50,   47,   50,   47,   52,   47,   51,   47,   51,
+       14,   47,   47,   49,   47,   47,   47,   18,   47,   47,
+       52,   52,   47,   47,   47,   47,    0,   47,   47,   47,
+       47,   47
     } ;
 
-static const flex_int16_t yy_nxt[80] =
+static const flex_int16_t yy_nxt[83] =
     {   0,
         6,    7,    8,    9,   10,   11,   12,   13,   14,   15,
-       16,    9,   17,   18,    6,    6,    6,   23,   25,   35,
-       26,   23,   20,   46,   39,   36,   45,   24,   30,   39,
-       31,   24,   32,   37,   39,   41,   38,   42,   37,   39,
-       41,   44,   42,   19,   19,   22,   22,   28,   28,   40,
-       40,   29,   43,   46,   21,   34,   33,   29,   27,   21,
-       46,    5,   46,   46,   46,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46,   46,   46,   46,   46
+       16,    9,   17,   18,    6,    6,    6,   23,   25,   29,
+       26,   23,   42,   36,   43,   20,   30,   24,   31,   37,
+       32,   24,   33,   38,   40,   29,   39,   47,   38,   40,
+       40,   42,   30,   43,   46,   40,   19,   19,   22,   22,
+       28,   28,   41,   41,   45,   47,   44,   47,   21,   35,
+       34,   27,   21,   47,    5,   47,   47,   47,   47,   47,
+       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
+       47,   47
     } ;
 
-static const flex_int16_t yy_chk[80] =
+static const flex_int16_t yy_chk[83] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,   10,   11,   17,
-       11,   22,   48,   41,   25,   17,   32,   10,   14,   25,
-       14,   22,   14,   18,   39,   26,   18,   26,   18,   39,
-       40,   31,   40,   47,   47,   49,   49,   50,   50,   51,
-       51,   28,   27,   24,   21,   16,   15,   13,   12,    7,
-        5,   46,   46,   46,   46,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46,   46,   46,   46,   46
+        1,    1,    1,    1,    1,    1,    1,   10,   11,   13,
+       11,   22,   26,   17,   26,   49,   13,   10,   14,   17,
+       14,   22,   14,   18,   25,   28,   18,   42,   18,   25,
+       40,   41,   28,   41,   33,   40,   48,   48,   50,   50,
+       51,   51,   52,   52,   32,   30,   27,   24,   21,   16,
+       15,   12,    7,    5,   47,   47,   47,   47,   47,   47,
+       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
+       47,   47
     } ;
 
 /* Table of booleans, true if rule could match eol. */
@@ -534,7 +536,9 @@ char *yytext;
 #include "yar_debug.h"
 #include "yar_substitution.h"
 
-#line 537 "yar_lexer.c"
+string __add_escape_character (string input);
+
+#line 541 "yar_lexer.c"
 
 /*
 #.*$                        {
@@ -936,7 +940,7 @@ char *yytext;
 "coproc"                    { 
                             }
 */
-#line 939 "yar_lexer.c"
+#line 943 "yar_lexer.c"
 
 #define INITIAL 0
 #define DOUBLE_QUOTE 1
@@ -1174,10 +1178,10 @@ YY_DECL
 		}
 
 	{
-#line 430 "yar_lexer.l"
+#line 432 "yar_lexer.l"
 
 
-#line 1180 "yar_lexer.c"
+#line 1184 "yar_lexer.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1204,13 +1208,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 47 )
+				if ( yy_current_state >= 48 )
 					yy_c = yy_meta[yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 62 );
+		while ( yy_base[yy_current_state] != 65 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -1246,14 +1250,14 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 432 "yar_lexer.l"
+#line 434 "yar_lexer.l"
 {
     return WHITESPACE;
 }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 435 "yar_lexer.l"
+#line 437 "yar_lexer.l"
 {
     yylval->str = new_string_2(yytext);
     return IDENTIFIER_ASSIGNMENT;
@@ -1262,7 +1266,7 @@ YY_RULE_SETUP
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 440 "yar_lexer.l"
+#line 442 "yar_lexer.l"
 {
     ++yylineno;
     return NEWLINE;
@@ -1270,91 +1274,91 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 444 "yar_lexer.l"
+#line 446 "yar_lexer.l"
 {
     return SEMICOLON;
 }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 447 "yar_lexer.l"
+#line 449 "yar_lexer.l"
 {
     return SEMICOLON_DOUBLE;
 }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 451 "yar_lexer.l"
+#line 453 "yar_lexer.l"
 {
     return LESS;
 }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 454 "yar_lexer.l"
+#line 456 "yar_lexer.l"
 {
     return NUM_LESS;
 }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 457 "yar_lexer.l"
+#line 459 "yar_lexer.l"
 {
     return GREATER;
 }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 460 "yar_lexer.l"
+#line 462 "yar_lexer.l"
 {
     return NUM_GREATER;
 }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 463 "yar_lexer.l"
+#line 465 "yar_lexer.l"
 {
     return GREATER_DOUBLE;
 }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 466 "yar_lexer.l"
+#line 468 "yar_lexer.l"
 {
     return AND_GREATER;
 }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 469 "yar_lexer.l"
+#line 471 "yar_lexer.l"
 {
     return GREATER_AND;
 }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 472 "yar_lexer.l"
+#line 474 "yar_lexer.l"
 {
     return AND_GREATER_DOUBLE;
 }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 475 "yar_lexer.l"
+#line 477 "yar_lexer.l"
 {
     return LESS_AND;
 }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 478 "yar_lexer.l"
+#line 480 "yar_lexer.l"
 {
     return NUM_LESS_AND;
 }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 481 "yar_lexer.l"
+#line 483 "yar_lexer.l"
 {
     return NUM_GREATER_AND;
 }
@@ -1362,28 +1366,30 @@ YY_RULE_SETUP
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 485 "yar_lexer.l"
+#line 487 "yar_lexer.l"
 {
-                            yylval->str_frag = make_string_fragment(1,
-                                                    new_substr (yytext + 1, yytext + strlen(yytext) - 1) );
+                            string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
+                            content = __add_escape_character (content);
+                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
                             return STRING;
                         }
 	YY_BREAK
 case 18:
 /* rule 18 can match eol */
 YY_RULE_SETUP
-#line 490 "yar_lexer.l"
+#line 493 "yar_lexer.l"
 {
-                            yylval->str_frag = make_string_fragment(1,
-                                                    new_substr (yytext + 1, yytext + strlen(yytext) - 1) );
+                            string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
+                            content = __add_escape_character (content);
+                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
                             return STRING;
                         }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 495 "yar_lexer.l"
+#line 499 "yar_lexer.l"
 {
-                            yylval->str_frag = make_string_fragment(0,
+                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
                                                     new_string_2(yytext) );
                                                     
                             return STRING;
@@ -1391,10 +1397,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 502 "yar_lexer.l"
+#line 506 "yar_lexer.l"
 {
                             DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
-                            yylval->str_frag = make_string_fragment(0,
+                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
                                                     variable_substitution_handler(yytext));
                             return STRING;
                         }
@@ -1402,27 +1408,27 @@ YY_RULE_SETUP
 case 21:
 /* rule 21 can match eol */
 YY_RULE_SETUP
-#line 509 "yar_lexer.l"
+#line 513 "yar_lexer.l"
 {
                             DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
-                            yylval->str_frag = make_string_fragment(0,
+                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
                                                     string_substitution_handler(yytext));
                             return STRING;
                         }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 516 "yar_lexer.l"
+#line 520 "yar_lexer.l"
 {
                             fprintf (stderr, "Unexpected character: %c\n", yytext[0]);
                         }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 520 "yar_lexer.l"
+#line 524 "yar_lexer.l"
 ECHO;
 	YY_BREAK
-#line 1425 "yar_lexer.c"
+#line 1431 "yar_lexer.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(DOUBLE_QUOTE):
 	yyterminate();
@@ -1720,7 +1726,7 @@ static int yy_get_next_buffer (void)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 47 )
+			if ( yy_current_state >= 48 )
 				yy_c = yy_meta[yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
@@ -1748,11 +1754,11 @@ static int yy_get_next_buffer (void)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 47 )
+		if ( yy_current_state >= 48 )
 			yy_c = yy_meta[yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
-	yy_is_jam = (yy_current_state == 46);
+	yy_is_jam = (yy_current_state == 47);
 
 		return yy_is_jam ? 0 : yy_current_state;
 }
@@ -2486,7 +2492,26 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 520 "yar_lexer.l"
+#line 524 "yar_lexer.l"
 
+
+string __add_escape_character (string input)
+{
+    string res = new_string ();
+    size_t len = string_length (input);
+    for (size_t i = 0; i < len; ++i)
+    {
+        res = string_push_back (res, '\\');
+        if (input[i] == '\\')
+        {
+            ++i;
+        }
+        if (i < len) {
+            res = string_push_back (res, input[i]);
+        }
+    }
+    free_string (input);
+    return res;
+}
 
 
