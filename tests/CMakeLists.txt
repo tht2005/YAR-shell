@@ -13,4 +13,5 @@ endfunction()
 
 create_test(test_environ)
 create_test(test_brace_expansion)
+create_test(test_glob)
 
