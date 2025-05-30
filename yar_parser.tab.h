@@ -48,11 +48,9 @@ extern int yydebug;
 #line 5 "yar_parser.y"
 
     #include "yar_ast.h"
-#line 19 "yar_parser.y"
-
     #include "data_structure/string.h"
 
-#line 56 "yar_parser.tab.h"
+#line 54 "yar_parser.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -101,13 +99,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 22 "yar_parser.y"
+#line 20 "yar_parser.y"
 
     string str;
     string_fragment str_frag;
     redirection redirection;
+    struct {
+        string_fragment_list *head, *tail;
+    } fragment_list;
 
-#line 111 "yar_parser.tab.h"
+#line 112 "yar_parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

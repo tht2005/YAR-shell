@@ -4,6 +4,7 @@
 
 %code requires {
     #include "yar_ast.h"
+    #include "data_structure/string.h"
 }
 
 %{
@@ -16,13 +17,13 @@ int yylex(void);
 void yyerror(const char *s);
 %}
 
-%code requires {
-    #include "data_structure/string.h"
-}
 %union {
     string str;
     string_fragment str_frag;
     redirection redirection;
+    struct {
+        string_fragment_list *head, *tail;
+    } fragment_list;
 }
 
 %token PREFIX_PROGRAM_SEGMENT

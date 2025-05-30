@@ -9,6 +9,7 @@
 #include "yar_debug.h"
 #include "yar_substitution.h"
 
+string double_quote_buffer;
 string __add_escape_character (string input);
 
 %}
@@ -484,12 +485,48 @@ IDENTIFIER          {LETTER}{ALNUM}*
     return NUM_GREATER_AND;
 }
 
-\"([^\\\"]|\\.)*\"      {
-                            string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
-                            content = __add_escape_character (content);
-                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
+\"                      {
+                            yy_push_state (DOUBLE_QUOTE);
+                            double_quote_buffer = NULL;
+                        }
+<DOUBLE_QUOTE>{
+    \"                  {
+                            yy_pop_state ();
+                            double_quote_buffer = __add_escape_character(double_quote_buffer);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
+                                                        double_quote_buffer);
                             return STRING;
                         }
+    \\.                 {
+                            DEBUG_ASSERT (strlen(yytext) == 2);
+                            double_quote_buffer = string_push_back (double_quote_buffer, yytext[1]);
+                        }
+    \${IDENTIFIER}      {
+                            DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
+                            string content = variable_substitution_handler(yytext);
+                            double_quote_buffer = string_append_back (double_quote_buffer, content);
+                            free_string (content);
+                        }
+    \$\{([^\\}]|\\.)*\} {
+                            DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
+                            string content = string_substitution_handler(yytext);
+                            double_quote_buffer = string_append_back (double_quote_buffer, content);
+                            free_string (content);
+                        }
+    <<EOF>>             {
+                            fprintf (stderr, "Yar: Unexpected end of line, double quote do not match.");
+                            return 0;
+                        }
+    .                   {
+                            DEBUG_ASSERT (strlen(yytext) == 1);
+                            if (yytext[0] == '\n')
+                            {
+                                ++yylineno;
+                            }
+                            double_quote_buffer = string_push_back (double_quote_buffer, yytext[0]);
+                        }
+}
+
 \'([^\'])*\'            {
                             string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
                             content = __add_escape_character (content);
