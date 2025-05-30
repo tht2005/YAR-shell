@@ -79,6 +79,9 @@ string string_pop_back (string s) {
 }
 
 string string_append_back (string str, const char *a) {
+    if (str == NULL) {
+        return new_string_2(a);
+    }
     int len = strlen (a);
     for (int i = 0; i < len; ++i)
         str = string_push_back (str, a[i]);
