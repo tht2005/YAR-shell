@@ -490,7 +490,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
                             return STRING;
                         }
-\'([^\\\']|\\.)*\'      {
+\'([^\'])*\'            {
                             string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
                             content = __add_escape_character (content);
                             yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
