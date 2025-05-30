@@ -12,3 +12,5 @@ function(create_test target)
 endfunction()
 
 create_test(test_environ)
+create_test(test_brace_expansion)
+

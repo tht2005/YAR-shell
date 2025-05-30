@@ -3,7 +3,7 @@
 
 #include "yar_ast.h"
 
-#ifdef DEBUG
+#ifdef __DEBUG
 #define DEBUG_PRINT(...) fprintf(stderr, __VA_ARGS__)
 #else
 #define DEBUG_PRINT(...) ((void)0)

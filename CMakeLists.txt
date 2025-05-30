@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_definitions(DEBUG)
+    add_compile_definitions(__DEBUG)
 else()
     add_compile_options(-O2 -march=native -flto)
     add_link_options(-flto)
@@ -19,10 +19,17 @@ find_package (PkgConfig REQUIRED)
 pkg_check_modules (READLINE REQUIRED readline)
 
 file(GLOB BUILTIN_CMD_SRCS "builtin_commands/*.c")
-add_library(builtinCommands STATIC ${BUILTIN_CMD_SRCS})
+add_library(BuiltinCommands STATIC ${BUILTIN_CMD_SRCS})
 
 file(GLOB DATA_STRUCTURE_SRCS "data_structure/*.c")
-add_library(dataStructures STATIC ${DATA_STRUCTURE_SRCS})
+add_library(DataStructures STATIC ${DATA_STRUCTURE_SRCS})
+
+set(LIBGLOB_SRCS "libglob/glob.c")
+add_library(Glob STATIC ${LIBGLOB_SRCS})
+
+# All libs
+add_library(parent_libs INTERFACE)
+target_link_libraries(parent_libs INTERFACE Program DataStructures BuiltinCommands Glob)
 
 set(SRC_FILES   yar.c 
                 yar_error.c
@@ -37,12 +44,11 @@ set(SRC_FILES   yar.c
                 yar_substitution.c
                 yar_debug.c
             )
-add_library (program STATIC ${SRC_FILES})
+add_library (Program STATIC ${SRC_FILES})
 add_executable(yar ${SRC_FILES})
 target_link_libraries (
     yar     ${READLINE_LIBRARIES}
-            builtinCommands
-            dataStructures
+            parent_libs
 )
 target_include_directories(
     yar PUBLIC
@@ -55,10 +61,6 @@ target_compile_options (
     ${READLINE_CFLAGS}
     ${READLINE_LDFLAGS}
 )
-
-# All libs
-add_library(parent_libs INTERFACE)
-target_link_libraries(parent_libs INTERFACE program dataStructures builtinCommands)
 
 # Testing
 enable_testing ()

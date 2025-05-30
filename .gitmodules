@@ -1,0 +1,3 @@
+[submodule "libglob"]
+	path = libglob
+	url = https://github.com/void-linux/libglob
