@@ -10,6 +10,10 @@
 
 #include "data_structure/string.h"
 
+#ifndef WAIT_ANY
+#define WAIT_ANY (-1)
+#endif
+
 job *first_job = NULL;
 
 void free_process (process *p) {
