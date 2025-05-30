@@ -13,10 +13,6 @@
 
 #include "data_structure/string.h"
 
-void run (char *source) {
-    interpret(source);
-}
-
 // void run_file (char *fp) {
 //     FILE *file = fopen (fp, "rb");
 //     if(fp == NULL) {
@@ -50,56 +46,21 @@ void run (char *source) {
 // }
 
 void run_prompt () {
-    // interactive mode
+    putenv ("HOSTNAME=Gentoo");
 
-    // yar_setenv ("HOSTNAME", "Gentoo", 1);
+    char *input;
+    char ps[128] = "";
+    char *user = getenv("USER");
+    char *hostname = getenv("HOSTNAME");
+    char *cwd = getcwd (NULL, 0);
 
-    // can't use valgrind with readline lib so ...
-    
-    // while ((s = readline (ps))) {
-    //     if (strcmp (s, "exit") == 0) {
-    //         free (s);
-    //         break;
-    //     }
-    //
-    //     list_head *list = scan_tokens (s);
-    //     list_head *ptr, *tmp;
-    //     list_for_each_safe (ptr, tmp, list) {
-    //         token_list *obj = list_entry(ptr, token_list, link_node);
-    //         printf ("token: %d %s\n", obj->tok.type, obj->tok.lexeme);
-    //     }
-    //
-    //     free_token_list (list);
-    //
-    //     free (s);
-    // }
-
-    while (1) {
-
-        char ps[128] = "",
-             *p = NULL,
-             *host = NULL,
-             *s = NULL;
-             // *p = yar_getenv ("USER"),
-             // *host = yar_getenv ("HOSTNAME"),
-             // *s = NULL;
-
-        char *cwd = getcwd (NULL, 0);
-        snprintf (ps, 100, "%s@%s %s $ ", p, host, cwd);
-
-        free (cwd);
-
-        printf ("%s", ps);
-        char buffer[1000];
-        fgets (buffer, 800, stdin);
-        int len = strlen (buffer);
-
-        if (strncmp (buffer, "exit", 4) == 0) {
-            break;
+    snprintf (ps, 100, "%s@%s %s $ ", user, hostname, cwd);
+    while ( (input = readline (ps)) ) {
+        if (*input) {
+            add_history (input);
         }
-
-        run (buffer);
-        // reset error
+        interpret (input);
+        free (input);
     }
 }
 
