@@ -3,21 +3,6 @@
 
 #include "data_structure/string.h"
 
-typedef struct brace_expansion_t {
-
-  enum {
-
-    BRACE_RANGE,
-    BRACE_LIST,
-
-  } type;
-
-  union {
-
-  };
-
-} brace_expansion_t;
-
 typedef struct string_fragment {
 
   enum {

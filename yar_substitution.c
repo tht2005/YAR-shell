@@ -33,7 +33,11 @@ string __get_capture (const char *input, regmatch_t pmatch)
 
 string __get_environment_variable (const char *name)
 {
-    return new_string_2 (getenv (name));
+    const char *val = getenv (name);
+    if (val == NULL) {
+        return new_string (); // empty string
+    }
+    return new_string_2 (val);
 }
 
 // ${IDENTIFIER}

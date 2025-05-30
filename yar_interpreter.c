@@ -114,7 +114,9 @@ string_list *interpret_string (int flags)
             case STR_FRAG_NON_QUOTED:
                 DEBUG_PRINT("debug: string_fragment unquoted: `%s`\n", ptr->str_frag.value);
                 string_list *head = split_word(ptr->str_frag.value);
-                assert (head != NULL);
+                if (head == NULL) {
+                    break;
+                }
                 string_list *string_list_ptr = head;
 
                 current_string = string_append_back (current_string, string_list_ptr->str);
