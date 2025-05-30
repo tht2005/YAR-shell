@@ -35,5 +35,6 @@ int main()
     test ("*");
     test ("\\{a,b\\}{c,d,e}");
     test ("{*.txt,*.tmp}");
+    test ("\\a\\b\\d\\{\\}\\}\\{");
     return 0;
 }
