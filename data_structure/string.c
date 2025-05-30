@@ -60,6 +60,9 @@ size_t string_length (string s) {
 }
 
 string string_push_back (string s, char c) {
+    if (s == NULL) {
+        s = new_string ();
+    }
     size_t length = string_length (s);
     s = preserve_buf(s, length + 3);
     s[length] = c;
