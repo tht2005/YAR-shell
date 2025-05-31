@@ -5,22 +5,24 @@
 void help_pre ()
 {
     // khoi tao?
+    fprintf (stderr, "debug: help_pre ()\n");
 }
 
 void help_post ()
 {
     // giai phong bo nho?
+    fprintf (stderr, "debug: help_post ()\n");
 }
 
 int help_main(int argc, char **argv)
 {
     puts(
-"Yar: Simple scripting language."
-
-"Builtin Commands:"
-"\thelp: Show help"
-"\tls: show current directory's content"
-"\tpwd: show current directory"
+"Yar: Simple scripting language.\n"
+"\n"
+"Builtin Commands:\n"
+"\thelp: Show help\n"
+"\tls: show current directory's content\n"
+"\tpwd: show current directory\n"
 );
     fflush (stdout);
     return 0;
