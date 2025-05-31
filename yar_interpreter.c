@@ -162,6 +162,10 @@ string_list *interpret_string (int token, uint64_t flags)
     string_list *string_list_head = NULL, *string_list_tail = NULL;
     string current_string = NULL;
 
+    if (flags & SIM_STR_INT_BRACE) {
+        current_string = string_push_back (current_string, '\{');
+    }
+
     for (string_fragment_list *ptr = string_fragment_head; ptr; ptr = ptr->next)
     {
         switch (ptr->str_frag.type)

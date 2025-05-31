@@ -231,8 +231,7 @@ extern char *yytext;
 #define INITIAL 0
 #define DOUBLE_QUOTE_STRING 1
 #define SINGLE_QUOTE_STRING 2
-#define BRACE_STRING 3
-#define COMMENT 4
+#define COMMENT 3
 
 #endif
 
@@ -492,9 +491,9 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 684 "yar_lexer.l"
+#line 681 "yar_lexer.l"
 
 
-#line 498 "yar_lexer.h"
+#line 497 "yar_lexer.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

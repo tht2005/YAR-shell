@@ -64,7 +64,6 @@ IDENTIFIER          {LETTER}{ALNUM}*
 
 %s                  DOUBLE_QUOTE_STRING
 %s                  SINGLE_QUOTE_STRING
-%s                  BRACE_STRING
 
 %x                  COMMENT
 
@@ -493,7 +492,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
                         }
 
 <DOUBLE_QUOTE_STRING>{
-    ([^ \t\r\n\"]|\\.)+ {
+    ([^ \t\r\n\"]|\\.|\\[ ])+   {
                             yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
                                                                     new_string_2 (yytext));
                             return STRING;
@@ -521,41 +520,19 @@ IDENTIFIER          {LETTER}{ALNUM}*
                         }
 }
 \"                      {
+                            DEBUG_PRINT ("debug: enter double quoted mode\n");
                             current_quoted = 1;
                             yy_push_state (DOUBLE_QUOTE_STRING);
                             string_list *list = interpret_string (TOK_NIL, SIM_STR_INT_DOUBLE_QUOTE);
-                            DEBUG_ASSERT (list && list->next == NULL);
-                            string content = new_string_2 (list->str);
-                            content = __add_escape_character_all (content);
-                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
-                            free_string_list (list);
-                            return STRING;
-                        }
-
-<BRACE_STRING>{
-    \}                  {
-                            current_brace = 0;
-                            yy_pop_state ();
-                            return BRACE_RIGHT;
-                        }
-    ([^ \t\r\n\"]|\\.)+ {
-                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
-                                                                    new_string_2 (yytext));
-                            return STRING;
-                        }
-    [^\n]+              {
-                            string content = new_string_2 (yytext);
-                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
-                            return STRING;
-                        }
-}
-\{                      {
-                            current_brace = 1;
-                            yy_push_state (BRACE_STRING);
-                            string_list *list = interpret_string (TOK_NIL, SIM_STR_INT_BRACE);
-                            DEBUG_ASSERT (list && list->next == NULL);
-                            string content = new_string_2 ("\{");
-                            content = string_append_back (content, list->str);
+                            string content;
+                            if (list == NULL) {
+                                content = new_string(); 
+                            }
+                            else {
+                                DEBUG_ASSERT (list->next == NULL);
+                                content = new_string_2 (list->str);
+                                content = __add_escape_character_all (content);
+                            }
                             yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
                             free_string_list (list);
                             return STRING;
@@ -621,7 +598,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
                             return STRING;
                         }
-([^ \=\#\t\r\n\"\'\{\}()<>&|$;]|\\.|\\[ ])+   {
+([^ \=\#\t\r\n\"\'()<>&|$;]|\\.|\\[ ])+     {
                                     yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED,
                                                             new_string_2(yytext) );
                                     return STRING;
@@ -676,6 +653,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             fprintf (stderr, "Unexpected character: %c\n", yytext[0]);
                         }
 <<EOF>>                 {
+                            DEBUG_PRINT ("flex: debug: exit with state (%d)\n", YY_START);
                             if (comment_mode)
                             {
                                 // skip all the   # ..... <<EOF>>
