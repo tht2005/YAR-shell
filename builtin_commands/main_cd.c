@@ -107,6 +107,6 @@ int cd_main(int argc, char **argv)
 __attribute__((constructor))
 static void __cd_register (void)
 {
-    builtin_command_register("cd", SAME_PROCESS, cd_main, cd_pre, cd_post);
+    builtin_command_register("cd", cd_main, cd_pre, cd_post);
 }
 

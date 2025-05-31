@@ -9,17 +9,15 @@
 size_t cnt_command = 0;
 builtin_command_t cmd[MAX_BUILTIN_COMMAND]; 
 
-builtin_command_t make_builtin_command (const char *name, builtin_type_t type, builtin_func_t func_main)
+builtin_command_t make_builtin_command (const char *name, builtin_func_t func_main)
 {
     builtin_command_t ret;
     ret.name = name;
-    ret.type = type;
     ret.func_main = func_main;
     return ret;
 }
 
 void builtin_command_register(const char *name,
-                                builtin_type_t type,
                                 builtin_func_t func_main,
                                 callback_t func_pre,
                                 callback_t func_post)
@@ -31,8 +29,8 @@ void builtin_command_register(const char *name,
     }
     func_pre ();
     atexit (func_post);
-    cmd[cnt_command++] = make_builtin_command (name, type, func_main);
-    fprintf (stderr, "Builtin command `%s` registered (%s)\n", name, type == SAME_PROCESS ? "same process" : "child process");
+    cmd[cnt_command++] = make_builtin_command (name, func_main);
+    fprintf (stderr, "Builtin command `%s` registered!\n", name);
 }
 
 int exec_builtin (int argc, char **argv)

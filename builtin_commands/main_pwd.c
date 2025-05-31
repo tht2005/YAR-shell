@@ -37,6 +37,6 @@ int pwd_main(int argc, char **argv)
 __attribute__((constructor))
 static void __pwd_register (void)
 {
-    builtin_command_register("pwd", SAME_PROCESS, pwd_main, pwd_pre, pwd_post);
+    builtin_command_register("pwd", pwd_main, pwd_pre, pwd_post);
 }
 

@@ -31,6 +31,6 @@ int help_main(int argc, char **argv)
 __attribute__((constructor))
 static void __help_register (void)
 {
-    builtin_command_register("help", CHILD_PROCESS, help_main, help_pre, help_post);
+    builtin_command_register("help", help_main, help_pre, help_post);
 }
 
