@@ -32,7 +32,6 @@ add_library(parent_libs INTERFACE)
 target_link_libraries(parent_libs INTERFACE Program DataStructures BuiltinCommands Glob)
 
 set(SRC_FILES   yar.c 
-                yar_error.c
                 yar_env.c
                 yar_exec.c
                 yar_job.c

@@ -244,7 +244,8 @@ extern char *yytext;
 
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
-#define DOUBLE_QUOTE 1
+#define DOUBLE_QUOTE_STRING 1
+#define BRACE_STRING 2
 
 #endif
 
@@ -504,9 +505,9 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 561 "yar_lexer.l"
+#line 581 "yar_lexer.l"
 
 
-#line 510 "yar_lexer.h"
+#line 511 "yar_lexer.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

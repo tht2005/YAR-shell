@@ -8,9 +8,15 @@
 #include "yar_parser.tab.h"
 #include "yar_debug.h"
 #include "yar_substitution.h"
+#include "yar_interpreter.h"
 
-string double_quote_buffer;
 string __add_escape_character (string input);
+
+int in_double_quote;
+void init_lexer ()
+{
+    in_double_quote = 0;
+}
 
 %}
 
@@ -27,7 +33,8 @@ ALNUM               [a-zA-Z0-9_]
 WHITESPACE          [ \t]
 IDENTIFIER          {LETTER}{ALNUM}*
 
-%x                  DOUBLE_QUOTE
+%s                  DOUBLE_QUOTE_STRING
+%s                  BRACE_STRING
 
 /*
 #.*$                        {
@@ -432,6 +439,62 @@ IDENTIFIER          {LETTER}{ALNUM}*
 
 %%
 
+\${IDENTIFIER}          {
+                            DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
+                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
+                                                    variable_substitution_handler(yytext));
+                            return STRING;
+                        }
+
+\$\{([^\\}]|\\.)*\}     {
+                            DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
+                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
+                                                    string_substitution_handler(yytext));
+                            return STRING;
+                        }
+
+<DOUBLE_QUOTE_STRING>{
+    {WHITESPACE}+       {
+                            string content = new_string_2 (yytext);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
+                                                                    content);
+                            return STRING;
+                        }
+    ([^ \t\r\n\"]|\\.)+ {
+                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
+                                                                    new_string_2 (yytext));
+                            return STRING;
+                        }
+    \n                  {
+                            ++yylineno;
+                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
+                                                                    new_string_2 (yytext));
+                            return STRING;
+                        }
+    \"                  {
+                            yy_pop_state ();
+                            return DOUBLE_QUOTE;
+                        }
+    .                   {
+                            DEBUG_ASSERT (strlen(yytext) == 1);
+                            if (yytext[0] == '\n')
+                            {
+                                ++yylineno;
+                            }
+                            string content = new_string_2 (yytext);
+                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
+                            return STRING;
+                        }
+}
+\"                      {
+                            yy_push_state (DOUBLE_QUOTE_STRING);
+                            string content = simple_string_interpret (SIM_STR_INT_DOUBLE_QUOTE);
+                            content = __add_escape_character (content);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
+                                                                    content);
+                            return STRING;
+                        }
+
 {WHITESPACE}+ {
     return WHITESPACE;
 }
@@ -439,6 +502,29 @@ IDENTIFIER          {LETTER}{ALNUM}*
     yylval->str = new_string_2(yytext);
     return IDENTIFIER_ASSIGNMENT;
 }
+
+\{                      {
+                            // call yylex get next token ...
+                        }
+
+\\.                     {
+                            DEBUG_ASSERT (strlen(yytext) == 2);
+                            string content = new_string_2 (yytext + 1);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
+                            return STRING;
+                        }
+
+\'([^\'])*\'            {
+                            string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
+                            content = __add_escape_character (content);
+                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
+                            return STRING;
+                        }
+([^ \=\t\r\n\"\'()<>&|$;]|\\[ ])+ {
+                                    yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
+                                                            new_string_2(yytext) );
+                                    return STRING;
+                                }
 
 \n          {
     ++yylineno;
@@ -485,77 +571,11 @@ IDENTIFIER          {LETTER}{ALNUM}*
     return NUM_GREATER_AND;
 }
 
-\"                      {
-                            yy_push_state (DOUBLE_QUOTE);
-                            double_quote_buffer = NULL;
-                        }
-<DOUBLE_QUOTE>{
-    \"                  {
-                            yy_pop_state ();
-                            double_quote_buffer = __add_escape_character(double_quote_buffer);
-                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
-                                                        double_quote_buffer);
-                            return STRING;
-                        }
-    \\.                 {
-                            DEBUG_ASSERT (strlen(yytext) == 2);
-                            double_quote_buffer = string_push_back (double_quote_buffer, yytext[1]);
-                        }
-    \${IDENTIFIER}      {
-                            DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
-                            string content = variable_substitution_handler(yytext);
-                            double_quote_buffer = string_append_back (double_quote_buffer, content);
-                            free_string (content);
-                        }
-    \$\{([^\\}]|\\.)*\} {
-                            DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
-                            string content = string_substitution_handler(yytext);
-                            double_quote_buffer = string_append_back (double_quote_buffer, content);
-                            free_string (content);
-                        }
-    <<EOF>>             {
-                            fprintf (stderr, "Yar: Unexpected end of line, double quote do not match.");
-                            return 0;
-                        }
-    .                   {
-                            DEBUG_ASSERT (strlen(yytext) == 1);
-                            if (yytext[0] == '\n')
-                            {
-                                ++yylineno;
-                            }
-                            double_quote_buffer = string_push_back (double_quote_buffer, yytext[0]);
-                        }
-}
-
-\'([^\'])*\'            {
-                            string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
-                            content = __add_escape_character (content);
-                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
-                            return STRING;
-                        }
-[^ \=\t\r\n\"\'()<>&|$]+ {
-                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
-                                                    new_string_2(yytext) );
-                                                    
-                            return STRING;
-                        }
-
-\${IDENTIFIER}          {
-                            DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
-                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
-                                                    variable_substitution_handler(yytext));
-                            return STRING;
-                        }
-
-\$\{([^\\}]|\\.)*\}     {
-                            DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
-                            yylval->str_frag = make_string_fragment(STR_FRAG_NON_QUOTED,
-                                                    string_substitution_handler(yytext));
-                            return STRING;
-                        }
-
 .                       {
                             fprintf (stderr, "Unexpected character: %c\n", yytext[0]);
+                        }
+<<EOF>>                 {
+                            return 0;
                         }
 
 %%

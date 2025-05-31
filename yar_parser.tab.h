@@ -90,7 +90,8 @@ extern int yydebug;
     MINUS = 284,                   /* MINUS  */
     TIMES = 285,                   /* TIMES  */
     DIVIDE = 286,                  /* DIVIDE  */
-    WHITESPACE = 287               /* WHITESPACE  */
+    DOUBLE_QUOTE = 287,            /* DOUBLE_QUOTE  */
+    WHITESPACE = 288               /* WHITESPACE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -108,7 +109,7 @@ union YYSTYPE
         string_fragment_list *head, *tail;
     } fragment_list;
 
-#line 112 "yar_parser.tab.h"
+#line 113 "yar_parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

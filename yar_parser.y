@@ -46,6 +46,8 @@ void yyerror(const char *s);
 %token NUM_LESS NUM_GREATER NUM_LESS_AND NUM_GREATER_AND
 %token PLUS MINUS TIMES DIVIDE
 
+%token DOUBLE_QUOTE
+
 // token for lexer, do not use in grammar
 %token WHITESPACE
 

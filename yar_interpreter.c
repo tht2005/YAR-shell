@@ -16,6 +16,9 @@
 int token;
 YYSTYPE yylval;
 
+int runtime_error;
+int syntax_error;
+
 int check_argument_or_redirection ()
 {
     switch (token)
@@ -70,25 +73,86 @@ glob_t glob (const char *pattern)
     return results;
 }
 
+char *strtok_r_respect_escape (char *restrict s, const char *restrict delim, char **restrict save_ptr)
+{
+    if (s == NULL) {
+        if (*save_ptr == NULL) {
+            return NULL;
+        }
+        s = (*save_ptr) + 1;
+    }
+    while (*s && (*s) != '\\' && strchr (delim, *s))
+    {
+        ++s;
+    }
+    *save_ptr = s;
+    while (1) {
+        if (**save_ptr == '\0') {
+            *save_ptr = NULL;
+            return s;
+        }
+        if (**save_ptr == '\\') {
+            ++(*save_ptr);
+            if (**save_ptr) ++ (*save_ptr);
+            continue;
+        }
+        if (strchr (delim, **save_ptr)) {
+            break;
+        }
+        ++(*save_ptr);
+    }
+    **save_ptr = '\0';
+    return s;
+}
+
 string_list *split_word (const char *input)
 {
     char *copy = strdup (input);
     char *saveptr;
 
     string_list *string_list_head = NULL, *string_list_tail = NULL;
-    char *token = strtok_r (copy, WHITESPACE_CHARACTERS, &saveptr);
+    char *token = strtok_r_respect_escape (copy, WHITESPACE_CHARACTERS, &saveptr);
     while (token != NULL)
     {
         string new_str = new_string_2(token);
         string_list_push_back (&string_list_head, &string_list_tail, &new_str);
-        token = strtok_r (NULL, WHITESPACE_CHARACTERS, &saveptr);
+        token = strtok_r_respect_escape (NULL, WHITESPACE_CHARACTERS, &saveptr);
     }
 
     free (copy);
     return string_list_head;
 }
 
-string_list *interpret_string (int flags)
+string simple_string_interpret (int flags)
+{
+    int stop_token;
+    if (flags & SIM_STR_INT_DOUBLE_QUOTE)
+    {
+        stop_token = DOUBLE_QUOTE;
+    }
+    else if (flags & SIM_STR_INT_BRACE)
+    {
+        stop_token = -1 -1 ;
+    }
+
+    string result = new_string();
+    while ((token = token_next ()) != stop_token)
+    {
+        if (token == 0) {
+            fprintf (stderr, "Yar: Unexpected end of line, the double quote string hasn't not been closed.\n");
+            fprintf (stderr, "\"%s\n", result);
+            fprintf (stderr, "%*s^ Missing double quote here\n", (int)strlen (result) + 1, "");
+            syntax_error = 1;
+            return result;
+        }
+        DEBUG_ASSERT (token == STRING);
+        result = string_append_back (result, yylval.str_frag.value);
+        free_string (yylval.str_frag.value);
+    }
+    return result;
+}
+
+string_list *interpret_string ()
 {
     // yypstate *parser = yypstate_new ();
     // int status;
@@ -238,15 +302,24 @@ void interpret_command ()
 }
 
 // parse program_segment
-void interpret(char *source)
+void interpret(const char *source)
 {
+    runtime_error = 0;
+    syntax_error = 0;
+    init_lexer();
+
     YY_BUFFER_STATE buffer = yy_scan_string(source);
 
     // yypstate *parser = yypstate_new ();
     // yypstate_delete (parser);
     token = token_skip_whitespace_newline();
     // interpret_command();
-    free_string_list (interpret_string(0));
+    free_string_list (interpret_string());
+
+    if (runtime_error == 0 && syntax_error == 0) {
+        // run
+    }
+    // after that free things
 
     // yypush_parse(parser, 0, &yylval);
     yy_delete_buffer(buffer);
