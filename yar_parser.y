@@ -26,6 +26,8 @@ void yyerror(const char *s);
     } fragment_list;
 }
 
+%token TOK_NIL
+
 %token PREFIX_PROGRAM_SEGMENT
 %token PREFIX_FUNCTION
 %token PREFIX_CODEBLOCK
@@ -45,6 +47,11 @@ void yyerror(const char *s);
 %token LESS GREATER GREATER_DOUBLE AND_GREATER GREATER_AND AND_GREATER_DOUBLE LESS_AND
 %token NUM_LESS NUM_GREATER NUM_LESS_AND NUM_GREATER_AND
 %token PLUS MINUS TIMES DIVIDE
+
+%token BRACE_LEFT BRACE_RIGHT
+
+%token CODEBLOCK_BEGIN          // {{
+%token CODEBLOCK_END            // }}
 
 %token DOUBLE_QUOTE
 

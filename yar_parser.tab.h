@@ -61,37 +61,42 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    PREFIX_PROGRAM_SEGMENT = 258,  /* PREFIX_PROGRAM_SEGMENT  */
-    PREFIX_FUNCTION = 259,         /* PREFIX_FUNCTION  */
-    PREFIX_CODEBLOCK = 260,        /* PREFIX_CODEBLOCK  */
-    PREFIX_ASSIGNMENT = 261,       /* PREFIX_ASSIGNMENT  */
-    PREFIX_REDIRECTION = 262,      /* PREFIX_REDIRECTION  */
-    PREFIX_COMMAND = 263,          /* PREFIX_COMMAND  */
-    PREFIX_SUBSTITUTION_STRING = 264, /* PREFIX_SUBSTITUTION_STRING  */
-    PREFIX_SUBSTITUTION_COMMAND = 265, /* PREFIX_SUBSTITUTION_COMMAND  */
-    PREFIX_SUBSTITUTION_ARITHMETIC = 266, /* PREFIX_SUBSTITUTION_ARITHMETIC  */
-    IDENTIFIER_ASSIGNMENT = 267,   /* IDENTIFIER_ASSIGNMENT  */
-    STRING = 268,                  /* STRING  */
-    SEMICOLON = 269,               /* SEMICOLON  */
-    SEMICOLON_DOUBLE = 270,        /* SEMICOLON_DOUBLE  */
-    NEWLINE = 271,                 /* NEWLINE  */
-    LESS = 272,                    /* LESS  */
-    GREATER = 273,                 /* GREATER  */
-    GREATER_DOUBLE = 274,          /* GREATER_DOUBLE  */
-    AND_GREATER = 275,             /* AND_GREATER  */
-    GREATER_AND = 276,             /* GREATER_AND  */
-    AND_GREATER_DOUBLE = 277,      /* AND_GREATER_DOUBLE  */
-    LESS_AND = 278,                /* LESS_AND  */
-    NUM_LESS = 279,                /* NUM_LESS  */
-    NUM_GREATER = 280,             /* NUM_GREATER  */
-    NUM_LESS_AND = 281,            /* NUM_LESS_AND  */
-    NUM_GREATER_AND = 282,         /* NUM_GREATER_AND  */
-    PLUS = 283,                    /* PLUS  */
-    MINUS = 284,                   /* MINUS  */
-    TIMES = 285,                   /* TIMES  */
-    DIVIDE = 286,                  /* DIVIDE  */
-    DOUBLE_QUOTE = 287,            /* DOUBLE_QUOTE  */
-    WHITESPACE = 288               /* WHITESPACE  */
+    TOK_NIL = 258,                 /* TOK_NIL  */
+    PREFIX_PROGRAM_SEGMENT = 259,  /* PREFIX_PROGRAM_SEGMENT  */
+    PREFIX_FUNCTION = 260,         /* PREFIX_FUNCTION  */
+    PREFIX_CODEBLOCK = 261,        /* PREFIX_CODEBLOCK  */
+    PREFIX_ASSIGNMENT = 262,       /* PREFIX_ASSIGNMENT  */
+    PREFIX_REDIRECTION = 263,      /* PREFIX_REDIRECTION  */
+    PREFIX_COMMAND = 264,          /* PREFIX_COMMAND  */
+    PREFIX_SUBSTITUTION_STRING = 265, /* PREFIX_SUBSTITUTION_STRING  */
+    PREFIX_SUBSTITUTION_COMMAND = 266, /* PREFIX_SUBSTITUTION_COMMAND  */
+    PREFIX_SUBSTITUTION_ARITHMETIC = 267, /* PREFIX_SUBSTITUTION_ARITHMETIC  */
+    IDENTIFIER_ASSIGNMENT = 268,   /* IDENTIFIER_ASSIGNMENT  */
+    STRING = 269,                  /* STRING  */
+    SEMICOLON = 270,               /* SEMICOLON  */
+    SEMICOLON_DOUBLE = 271,        /* SEMICOLON_DOUBLE  */
+    NEWLINE = 272,                 /* NEWLINE  */
+    LESS = 273,                    /* LESS  */
+    GREATER = 274,                 /* GREATER  */
+    GREATER_DOUBLE = 275,          /* GREATER_DOUBLE  */
+    AND_GREATER = 276,             /* AND_GREATER  */
+    GREATER_AND = 277,             /* GREATER_AND  */
+    AND_GREATER_DOUBLE = 278,      /* AND_GREATER_DOUBLE  */
+    LESS_AND = 279,                /* LESS_AND  */
+    NUM_LESS = 280,                /* NUM_LESS  */
+    NUM_GREATER = 281,             /* NUM_GREATER  */
+    NUM_LESS_AND = 282,            /* NUM_LESS_AND  */
+    NUM_GREATER_AND = 283,         /* NUM_GREATER_AND  */
+    PLUS = 284,                    /* PLUS  */
+    MINUS = 285,                   /* MINUS  */
+    TIMES = 286,                   /* TIMES  */
+    DIVIDE = 287,                  /* DIVIDE  */
+    BRACE_LEFT = 288,              /* BRACE_LEFT  */
+    BRACE_RIGHT = 289,             /* BRACE_RIGHT  */
+    CODEBLOCK_BEGIN = 290,         /* CODEBLOCK_BEGIN  */
+    CODEBLOCK_END = 291,           /* CODEBLOCK_END  */
+    DOUBLE_QUOTE = 292,            /* DOUBLE_QUOTE  */
+    WHITESPACE = 293               /* WHITESPACE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -109,7 +114,7 @@ union YYSTYPE
         string_fragment_list *head, *tail;
     } fragment_list;
 
-#line 113 "yar_parser.tab.h"
+#line 118 "yar_parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

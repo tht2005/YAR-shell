@@ -33,22 +33,7 @@
 /* First, we deal with  platform-specific or compiler-specific issues. */
 
 /* begin standard C headers. */
-/* Feature test macros. Flex uses functions that require a minimum set of
- * macros defined. As defining some macros may hide function declarations that
- * user code might use, be conservative and respect user's definitions as much
- * as possible. In glibc, feature test macros may not be all set up until one
- * of the libc header (that includes <features.h>) is included. This creates
- * a circular dependency when we check the macros. <assert.h> is the safest
- * header we can include and does not declare too many functions we don't need.
- */
-#if !defined(__GNU_LIBRARY__) && defined(__STDC__)
-#include <assert.h>
-#endif
-#if !(defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE) || \
-    defined(_POSIX_SOURCE))
-# define _POSIX_C_SOURCE 1 /* Required for fileno() */
-# define _POSIX_SOURCE 1
-#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -245,7 +230,9 @@ extern char *yytext;
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
 #define DOUBLE_QUOTE_STRING 1
-#define BRACE_STRING 2
+#define SINGLE_QUOTE_STRING 2
+#define BRACE_STRING 3
+#define COMMENT 4
 
 #endif
 
@@ -505,9 +492,9 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 581 "yar_lexer.l"
+#line 684 "yar_lexer.l"
 
 
-#line 511 "yar_lexer.h"
+#line 498 "yar_lexer.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

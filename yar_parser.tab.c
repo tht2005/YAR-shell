@@ -108,58 +108,63 @@ enum yysymbol_kind_t
   YYSYMBOL_YYEOF = 0,                      /* "end of file"  */
   YYSYMBOL_YYerror = 1,                    /* error  */
   YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
-  YYSYMBOL_PREFIX_PROGRAM_SEGMENT = 3,     /* PREFIX_PROGRAM_SEGMENT  */
-  YYSYMBOL_PREFIX_FUNCTION = 4,            /* PREFIX_FUNCTION  */
-  YYSYMBOL_PREFIX_CODEBLOCK = 5,           /* PREFIX_CODEBLOCK  */
-  YYSYMBOL_PREFIX_ASSIGNMENT = 6,          /* PREFIX_ASSIGNMENT  */
-  YYSYMBOL_PREFIX_REDIRECTION = 7,         /* PREFIX_REDIRECTION  */
-  YYSYMBOL_PREFIX_COMMAND = 8,             /* PREFIX_COMMAND  */
-  YYSYMBOL_PREFIX_SUBSTITUTION_STRING = 9, /* PREFIX_SUBSTITUTION_STRING  */
-  YYSYMBOL_PREFIX_SUBSTITUTION_COMMAND = 10, /* PREFIX_SUBSTITUTION_COMMAND  */
-  YYSYMBOL_PREFIX_SUBSTITUTION_ARITHMETIC = 11, /* PREFIX_SUBSTITUTION_ARITHMETIC  */
-  YYSYMBOL_IDENTIFIER_ASSIGNMENT = 12,     /* IDENTIFIER_ASSIGNMENT  */
-  YYSYMBOL_STRING = 13,                    /* STRING  */
-  YYSYMBOL_SEMICOLON = 14,                 /* SEMICOLON  */
-  YYSYMBOL_SEMICOLON_DOUBLE = 15,          /* SEMICOLON_DOUBLE  */
-  YYSYMBOL_NEWLINE = 16,                   /* NEWLINE  */
-  YYSYMBOL_LESS = 17,                      /* LESS  */
-  YYSYMBOL_GREATER = 18,                   /* GREATER  */
-  YYSYMBOL_GREATER_DOUBLE = 19,            /* GREATER_DOUBLE  */
-  YYSYMBOL_AND_GREATER = 20,               /* AND_GREATER  */
-  YYSYMBOL_GREATER_AND = 21,               /* GREATER_AND  */
-  YYSYMBOL_AND_GREATER_DOUBLE = 22,        /* AND_GREATER_DOUBLE  */
-  YYSYMBOL_LESS_AND = 23,                  /* LESS_AND  */
-  YYSYMBOL_NUM_LESS = 24,                  /* NUM_LESS  */
-  YYSYMBOL_NUM_GREATER = 25,               /* NUM_GREATER  */
-  YYSYMBOL_NUM_LESS_AND = 26,              /* NUM_LESS_AND  */
-  YYSYMBOL_NUM_GREATER_AND = 27,           /* NUM_GREATER_AND  */
-  YYSYMBOL_PLUS = 28,                      /* PLUS  */
-  YYSYMBOL_MINUS = 29,                     /* MINUS  */
-  YYSYMBOL_TIMES = 30,                     /* TIMES  */
-  YYSYMBOL_DIVIDE = 31,                    /* DIVIDE  */
-  YYSYMBOL_DOUBLE_QUOTE = 32,              /* DOUBLE_QUOTE  */
-  YYSYMBOL_WHITESPACE = 33,                /* WHITESPACE  */
-  YYSYMBOL_34_ = 34,                       /* "$("  */
-  YYSYMBOL_35_ = 35,                       /* ")"  */
-  YYSYMBOL_36_ = 36,                       /* "$(("  */
-  YYSYMBOL_37_ = 37,                       /* "))"  */
-  YYSYMBOL_38_ = 38,                       /* "${"  */
-  YYSYMBOL_39_ = 39,                       /* "}"  */
-  YYSYMBOL_YYACCEPT = 40,                  /* $accept  */
-  YYSYMBOL_input = 41,                     /* input  */
-  YYSYMBOL_program_segment = 42,           /* program_segment  */
-  YYSYMBOL_codeblock = 43,                 /* codeblock  */
-  YYSYMBOL_function = 44,                  /* function  */
-  YYSYMBOL_statement = 45,                 /* statement  */
-  YYSYMBOL_command = 46,                   /* command  */
-  YYSYMBOL_assignment_list = 47,           /* assignment_list  */
-  YYSYMBOL_assignment = 48,                /* assignment  */
-  YYSYMBOL_arguments_and_redirections_list = 49, /* arguments_and_redirections_list  */
-  YYSYMBOL_redirection = 50,               /* redirection  */
-  YYSYMBOL_substitution = 51,              /* substitution  */
-  YYSYMBOL_substitution_command = 52,      /* substitution_command  */
-  YYSYMBOL_substitution_arithmetic = 53,   /* substitution_arithmetic  */
-  YYSYMBOL_substitution_string = 54        /* substitution_string  */
+  YYSYMBOL_TOK_NIL = 3,                    /* TOK_NIL  */
+  YYSYMBOL_PREFIX_PROGRAM_SEGMENT = 4,     /* PREFIX_PROGRAM_SEGMENT  */
+  YYSYMBOL_PREFIX_FUNCTION = 5,            /* PREFIX_FUNCTION  */
+  YYSYMBOL_PREFIX_CODEBLOCK = 6,           /* PREFIX_CODEBLOCK  */
+  YYSYMBOL_PREFIX_ASSIGNMENT = 7,          /* PREFIX_ASSIGNMENT  */
+  YYSYMBOL_PREFIX_REDIRECTION = 8,         /* PREFIX_REDIRECTION  */
+  YYSYMBOL_PREFIX_COMMAND = 9,             /* PREFIX_COMMAND  */
+  YYSYMBOL_PREFIX_SUBSTITUTION_STRING = 10, /* PREFIX_SUBSTITUTION_STRING  */
+  YYSYMBOL_PREFIX_SUBSTITUTION_COMMAND = 11, /* PREFIX_SUBSTITUTION_COMMAND  */
+  YYSYMBOL_PREFIX_SUBSTITUTION_ARITHMETIC = 12, /* PREFIX_SUBSTITUTION_ARITHMETIC  */
+  YYSYMBOL_IDENTIFIER_ASSIGNMENT = 13,     /* IDENTIFIER_ASSIGNMENT  */
+  YYSYMBOL_STRING = 14,                    /* STRING  */
+  YYSYMBOL_SEMICOLON = 15,                 /* SEMICOLON  */
+  YYSYMBOL_SEMICOLON_DOUBLE = 16,          /* SEMICOLON_DOUBLE  */
+  YYSYMBOL_NEWLINE = 17,                   /* NEWLINE  */
+  YYSYMBOL_LESS = 18,                      /* LESS  */
+  YYSYMBOL_GREATER = 19,                   /* GREATER  */
+  YYSYMBOL_GREATER_DOUBLE = 20,            /* GREATER_DOUBLE  */
+  YYSYMBOL_AND_GREATER = 21,               /* AND_GREATER  */
+  YYSYMBOL_GREATER_AND = 22,               /* GREATER_AND  */
+  YYSYMBOL_AND_GREATER_DOUBLE = 23,        /* AND_GREATER_DOUBLE  */
+  YYSYMBOL_LESS_AND = 24,                  /* LESS_AND  */
+  YYSYMBOL_NUM_LESS = 25,                  /* NUM_LESS  */
+  YYSYMBOL_NUM_GREATER = 26,               /* NUM_GREATER  */
+  YYSYMBOL_NUM_LESS_AND = 27,              /* NUM_LESS_AND  */
+  YYSYMBOL_NUM_GREATER_AND = 28,           /* NUM_GREATER_AND  */
+  YYSYMBOL_PLUS = 29,                      /* PLUS  */
+  YYSYMBOL_MINUS = 30,                     /* MINUS  */
+  YYSYMBOL_TIMES = 31,                     /* TIMES  */
+  YYSYMBOL_DIVIDE = 32,                    /* DIVIDE  */
+  YYSYMBOL_BRACE_LEFT = 33,                /* BRACE_LEFT  */
+  YYSYMBOL_BRACE_RIGHT = 34,               /* BRACE_RIGHT  */
+  YYSYMBOL_CODEBLOCK_BEGIN = 35,           /* CODEBLOCK_BEGIN  */
+  YYSYMBOL_CODEBLOCK_END = 36,             /* CODEBLOCK_END  */
+  YYSYMBOL_DOUBLE_QUOTE = 37,              /* DOUBLE_QUOTE  */
+  YYSYMBOL_WHITESPACE = 38,                /* WHITESPACE  */
+  YYSYMBOL_39_ = 39,                       /* "$("  */
+  YYSYMBOL_40_ = 40,                       /* ")"  */
+  YYSYMBOL_41_ = 41,                       /* "$(("  */
+  YYSYMBOL_42_ = 42,                       /* "))"  */
+  YYSYMBOL_43_ = 43,                       /* "${"  */
+  YYSYMBOL_44_ = 44,                       /* "}"  */
+  YYSYMBOL_YYACCEPT = 45,                  /* $accept  */
+  YYSYMBOL_input = 46,                     /* input  */
+  YYSYMBOL_program_segment = 47,           /* program_segment  */
+  YYSYMBOL_codeblock = 48,                 /* codeblock  */
+  YYSYMBOL_function = 49,                  /* function  */
+  YYSYMBOL_statement = 50,                 /* statement  */
+  YYSYMBOL_command = 51,                   /* command  */
+  YYSYMBOL_assignment_list = 52,           /* assignment_list  */
+  YYSYMBOL_assignment = 53,                /* assignment  */
+  YYSYMBOL_arguments_and_redirections_list = 54, /* arguments_and_redirections_list  */
+  YYSYMBOL_redirection = 55,               /* redirection  */
+  YYSYMBOL_substitution = 56,              /* substitution  */
+  YYSYMBOL_substitution_command = 57,      /* substitution_command  */
+  YYSYMBOL_substitution_arithmetic = 58,   /* substitution_arithmetic  */
+  YYSYMBOL_substitution_string = 59        /* substitution_string  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -466,7 +471,7 @@ union yyalloc
 #define YYLAST   45
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  40
+#define YYNTOKENS  45
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  15
 /* YYNRULES -- Number of rules.  */
@@ -475,7 +480,7 @@ union yyalloc
 #define YYNSTATES  58
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   294
+#define YYMAXUTOK   299
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -518,17 +523,17 @@ static const yytype_int8 yytranslate[] =
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37,    38,    39
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    61,    61,    62,    63,    64,    71,    72,    73,    76,
-      77,    80,    82,    84,    87,    88,    92,    99,   100,   104,
-     110,   115,   120,   125,   130,   135,   140,   145,   150,   155,
-     160,   168,   169,   170,   173,   176,   178
+       0,    68,    68,    69,    70,    71,    78,    79,    80,    83,
+      84,    87,    89,    91,    94,    95,    99,   106,   107,   111,
+     117,   122,   127,   132,   137,   142,   147,   152,   157,   162,
+     167,   175,   176,   177,   180,   183,   185
 };
 #endif
 
@@ -544,7 +549,7 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "\"end of file\"", "error", "\"invalid token\"",
+  "\"end of file\"", "error", "\"invalid token\"", "TOK_NIL",
   "PREFIX_PROGRAM_SEGMENT", "PREFIX_FUNCTION", "PREFIX_CODEBLOCK",
   "PREFIX_ASSIGNMENT", "PREFIX_REDIRECTION", "PREFIX_COMMAND",
   "PREFIX_SUBSTITUTION_STRING", "PREFIX_SUBSTITUTION_COMMAND",
@@ -552,7 +557,8 @@ static const char *const yytname[] =
   "SEMICOLON", "SEMICOLON_DOUBLE", "NEWLINE", "LESS", "GREATER",
   "GREATER_DOUBLE", "AND_GREATER", "GREATER_AND", "AND_GREATER_DOUBLE",
   "LESS_AND", "NUM_LESS", "NUM_GREATER", "NUM_LESS_AND", "NUM_GREATER_AND",
-  "PLUS", "MINUS", "TIMES", "DIVIDE", "DOUBLE_QUOTE", "WHITESPACE",
+  "PLUS", "MINUS", "TIMES", "DIVIDE", "BRACE_LEFT", "BRACE_RIGHT",
+  "CODEBLOCK_BEGIN", "CODEBLOCK_END", "DOUBLE_QUOTE", "WHITESPACE",
   "\"$(\"", "\")\"", "\"$((\"", "\"))\"", "\"${\"", "\"}\"", "$accept",
   "input", "program_segment", "codeblock", "function", "statement",
   "command", "assignment_list", "assignment",
@@ -567,7 +573,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-27)
+#define YYPACT_NINF (-32)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -581,12 +587,12 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       8,   -27,   -27,   -27,   -26,   -19,   -14,    24,   -27,   -27,
-     -27,   -27,   -27,   -27,   -27,   -27,   -27,    19,    13,    18,
-     -10,   -27,   -27,    16,   -27,     7,    -9,    -6,   -27,    20,
-     -17,   -27,   -27,   -27,   -27,   -27,    21,    22,    23,    25,
-      26,    27,    28,    29,    30,    31,    32,   -27,   -27,   -27,
-     -27,   -27,   -27,   -27,   -27,   -27,   -27,   -27
+       7,   -32,   -32,   -32,   -31,   -24,   -19,    24,   -32,   -32,
+     -32,   -32,   -32,   -32,   -32,   -32,   -32,    18,    12,    17,
+     -15,   -32,   -32,    15,   -32,     6,   -14,   -11,   -32,    19,
+     -18,   -32,   -32,   -32,   -32,   -32,    20,    21,    22,    23,
+      25,    26,    27,    28,    29,    30,    31,   -32,   -32,   -32,
+     -32,   -32,   -32,   -32,   -32,   -32,   -32,   -32
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -605,8 +611,8 @@ static const yytype_int8 yydefact[] =
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -27,   -27,    12,   -27,    37,   -27,   -27,   -27,   -27,   -27,
-     -27,   -27,   -27,   -27,   -27
+     -32,   -32,    13,   -32,    38,   -32,   -32,   -32,   -32,   -32,
+     -32,   -32,   -32,   -32,   -32
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
@@ -624,38 +630,38 @@ static const yytype_int8 yytable[] =
       36,    37,    38,    39,    40,    41,    42,    43,    44,    45,
       46,     1,    18,     2,    30,    19,     3,     4,     5,     6,
       31,     1,    20,     2,    21,    23,    26,    28,    29,    34,
-      33,    27,     0,    35,    47,    48,    49,    10,    50,    51,
+      33,     0,    27,    35,    47,    48,    49,    50,    10,    51,
       52,    53,    54,    55,    56,    57
 };
 
 static const yytype_int8 yycheck[] =
 {
-      17,    18,    19,    20,    21,    22,    23,    24,    25,    26,
-      27,     3,    38,     5,     7,    34,     8,     9,    10,    11,
-      13,     3,    36,     5,     0,     6,    13,    37,    12,    35,
-      39,    19,    -1,    13,    13,    13,    13,     0,    13,    13,
-      13,    13,    13,    13,    13,    13
+      18,    19,    20,    21,    22,    23,    24,    25,    26,    27,
+      28,     4,    43,     6,     8,    39,     9,    10,    11,    12,
+      14,     4,    41,     6,     0,     7,    14,    42,    13,    40,
+      44,    -1,    19,    14,    14,    14,    14,    14,     0,    14,
+      14,    14,    14,    14,    14,    14
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,     5,     8,     9,    10,    11,    41,    42,    43,
-      44,    45,    46,    51,    52,    53,    54,    47,    38,    34,
-      36,     0,    44,     6,    48,    49,    13,    42,    37,    12,
-       7,    13,    50,    39,    35,    13,    17,    18,    19,    20,
-      21,    22,    23,    24,    25,    26,    27,    13,    13,    13,
-      13,    13,    13,    13,    13,    13,    13,    13
+       0,     4,     6,     9,    10,    11,    12,    46,    47,    48,
+      49,    50,    51,    56,    57,    58,    59,    52,    43,    39,
+      41,     0,    49,     7,    53,    54,    14,    47,    42,    13,
+       8,    14,    55,    44,    40,    14,    18,    19,    20,    21,
+      22,    23,    24,    25,    26,    27,    28,    14,    14,    14,
+      14,    14,    14,    14,    14,    14,    14,    14
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    40,    41,    41,    41,    41,    42,    42,    42,    43,
-      43,    44,    45,    46,    47,    47,    48,    49,    49,    49,
-      50,    50,    50,    50,    50,    50,    50,    50,    50,    50,
-      50,    51,    51,    51,    52,    53,    54
+       0,    45,    46,    46,    46,    46,    47,    47,    47,    48,
+      48,    49,    50,    51,    52,    52,    53,    54,    54,    54,
+      55,    55,    55,    55,    55,    55,    55,    55,    55,    55,
+      55,    56,    56,    56,    57,    58,    59
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -1501,140 +1507,140 @@ yyreduce:
   switch (yyn)
     {
   case 15: /* assignment_list: assignment_list assignment  */
-#line 88 "yar_parser.y"
+#line 95 "yar_parser.y"
                                                                     {
                                                                         // construct assignment list here
                                                                     }
-#line 1509 "yar_parser.tab.c"
+#line 1515 "yar_parser.tab.c"
     break;
 
   case 16: /* assignment: PREFIX_ASSIGNMENT IDENTIFIER_ASSIGNMENT STRING  */
-#line 92 "yar_parser.y"
+#line 99 "yar_parser.y"
                                                                     {
                                                                         (yyval.str) = new_string_2 ((yyvsp[-1].str));
                                                                         (yyval.str) = string_append_back ((yyval.str), (yyvsp[0].str_frag).value);
                                                                         DEBUG_PRINT("debug: assignment: `%s`\n", (yyval.str));
                                                                     }
-#line 1519 "yar_parser.tab.c"
+#line 1525 "yar_parser.tab.c"
     break;
 
   case 18: /* arguments_and_redirections_list: arguments_and_redirections_list STRING  */
-#line 101 "yar_parser.y"
+#line 108 "yar_parser.y"
                                                                                         {
                                                                                             DEBUG_PRINT("debug: argument `%s` append to list\n", (yyvsp[0].str_frag).value);
                                                                                         }
-#line 1527 "yar_parser.tab.c"
+#line 1533 "yar_parser.tab.c"
     break;
 
   case 19: /* arguments_and_redirections_list: arguments_and_redirections_list redirection  */
-#line 105 "yar_parser.y"
+#line 112 "yar_parser.y"
                                                                                         {
                                                                                             DEBUG_PRINT("debug: redirection append to list\n");
                                                                                         }
-#line 1535 "yar_parser.tab.c"
+#line 1541 "yar_parser.tab.c"
     break;
 
   case 20: /* redirection: PREFIX_REDIRECTION LESS STRING  */
-#line 111 "yar_parser.y"
+#line 118 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", LESS, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (LESS, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1544 "yar_parser.tab.c"
+#line 1550 "yar_parser.tab.c"
     break;
 
   case 21: /* redirection: PREFIX_REDIRECTION NUM_LESS STRING  */
-#line 116 "yar_parser.y"
+#line 123 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (NUM_LESS, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1553 "yar_parser.tab.c"
+#line 1559 "yar_parser.tab.c"
     break;
 
   case 22: /* redirection: PREFIX_REDIRECTION GREATER STRING  */
-#line 121 "yar_parser.y"
+#line 128 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (GREATER, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1562 "yar_parser.tab.c"
+#line 1568 "yar_parser.tab.c"
     break;
 
   case 23: /* redirection: PREFIX_REDIRECTION NUM_GREATER STRING  */
-#line 126 "yar_parser.y"
+#line 133 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (NUM_GREATER, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1571 "yar_parser.tab.c"
+#line 1577 "yar_parser.tab.c"
     break;
 
   case 24: /* redirection: PREFIX_REDIRECTION GREATER_DOUBLE STRING  */
-#line 131 "yar_parser.y"
+#line 138 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1580 "yar_parser.tab.c"
+#line 1586 "yar_parser.tab.c"
     break;
 
   case 25: /* redirection: PREFIX_REDIRECTION AND_GREATER STRING  */
-#line 136 "yar_parser.y"
+#line 143 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (AND_GREATER, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1589 "yar_parser.tab.c"
+#line 1595 "yar_parser.tab.c"
     break;
 
   case 26: /* redirection: PREFIX_REDIRECTION GREATER_AND STRING  */
-#line 141 "yar_parser.y"
+#line 148 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_AND, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (GREATER_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1598 "yar_parser.tab.c"
+#line 1604 "yar_parser.tab.c"
     break;
 
   case 27: /* redirection: PREFIX_REDIRECTION AND_GREATER_DOUBLE STRING  */
-#line 146 "yar_parser.y"
+#line 153 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (AND_GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1607 "yar_parser.tab.c"
+#line 1613 "yar_parser.tab.c"
     break;
 
   case 28: /* redirection: PREFIX_REDIRECTION LESS_AND STRING  */
-#line 151 "yar_parser.y"
+#line 158 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", LESS_AND, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (LESS_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1616 "yar_parser.tab.c"
+#line 1622 "yar_parser.tab.c"
     break;
 
   case 29: /* redirection: PREFIX_REDIRECTION NUM_LESS_AND STRING  */
-#line 156 "yar_parser.y"
+#line 163 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS_AND, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (NUM_LESS_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1625 "yar_parser.tab.c"
+#line 1631 "yar_parser.tab.c"
     break;
 
   case 30: /* redirection: PREFIX_REDIRECTION NUM_GREATER_AND STRING  */
-#line 161 "yar_parser.y"
+#line 168 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER_AND, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (NUM_GREATER_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1634 "yar_parser.tab.c"
+#line 1640 "yar_parser.tab.c"
     break;
 
 
-#line 1638 "yar_parser.tab.c"
+#line 1644 "yar_parser.tab.c"
 
       default: break;
     }
@@ -1871,7 +1877,7 @@ yypushreturn:
 #undef yyvs
 #undef yyvsp
 #undef yystacksize
-#line 181 "yar_parser.y"
+#line 188 "yar_parser.y"
 
 
 void yyerror(const char *s) {
