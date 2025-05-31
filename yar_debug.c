@@ -2,13 +2,14 @@
 #include "yar_ast.h"
 
 #include <assert.h>
+#include <string.h>
 
 void debug_string_list (string_list *list)
 {
     DEBUG_PRINT("debug: begin string list\n");
     for (; list; list = list->next)
     {
-        DEBUG_PRINT("`%s`\n", list->str);
+        DEBUG_PRINT("`%s` (%ld)\n", list->str, strlen (list->str));
     }
     DEBUG_PRINT("debug: end string list\n");
 }
