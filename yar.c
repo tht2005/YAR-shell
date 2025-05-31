@@ -1,8 +1,10 @@
 #include "yar.h"
+#include "data_structure/string.h"
 #include "yar_env.h"
 #include "yar_interpreter.h"
 #include "yar_shell.h"
 
+#include <string.h>
 #include <unistd.h>
 
 #include <stdio.h>
@@ -10,8 +12,6 @@
 
 #include <readline/readline.h>
 #include <readline/history.h>
-
-#include "data_structure/string.h"
 
 // void run_file (char *fp) {
 //     FILE *file = fopen (fp, "rb");
@@ -45,22 +45,57 @@
 //     if (hadRuntimeError) exit (70);
 // }
 
+string read_multiline_input (const char *prompt)
+{
+    char *line = NULL;
+    string fullline = NULL;
+
+    while (1)
+    {
+        line = readline(prompt);
+        if (line == NULL)
+        {
+            fprintf (stderr, "readline: EOF or error\n");
+            break;
+        }
+
+        size_t len = strlen(line);
+        int cont = (len > 0 && line[len - 1] == '\\');
+        if (cont)
+        {
+            line[len - 1] = '\0';
+        }
+
+        fullline = string_append_back(fullline, line);
+
+        free (line);
+
+        if (!cont) {
+            break;
+        }
+
+        prompt = "> ";
+    }
+    return fullline;
+}
+
 void run_prompt () {
     putenv ("HOSTNAME=Gentoo");
 
-    char *input;
     char ps[128] = "";
     char *user = getenv("USER");
     char *hostname = getenv("HOSTNAME");
     char *cwd = getcwd (NULL, 0);
 
+    string input;
+
     snprintf (ps, 100, "%s@%s %s $ ", user, hostname, cwd);
-    while ( (input = readline (ps)) ) {
+    while ( (input = read_multiline_input (ps)) ) {
         if (*input) {
             add_history (input);
         }
         interpret (input);
-        free (input);
+        free_string (input);
     }
 }
 
