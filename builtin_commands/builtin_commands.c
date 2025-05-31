@@ -43,8 +43,7 @@ int exec_builtin (int argc, char **argv)
     for (size_t i = 0; i < cnt_command; ++i)
     {
         if (strcmp (argv[0], cmd[i].name) == 0) {
-            cmd[i].func_main (argc, argv);
-            return 0;
+            return cmd[i].func_main (argc, argv);
         }
     }
     return COMMAND_NOT_FOUND;
