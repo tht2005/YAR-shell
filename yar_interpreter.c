@@ -8,18 +8,18 @@
 
 #include "libglob/glob.h"
 
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 
 #define WHITESPACE_CHARACTERS       " \t\r"
 
-int token;
 YYSTYPE yylval;
 
 int runtime_error;
 int syntax_error;
 
-int check_argument_or_redirection ()
+int check_argument_or_redirection (int token)
 {
     switch (token)
     {
@@ -49,7 +49,7 @@ int token_next ()
     return yylex (&yylval);
 }
 
-int token_skip_whitespace ()
+int token_skip_whitespace (int token)
 {
     while ((token = token_next()) == WHITESPACE)
     {
@@ -57,7 +57,7 @@ int token_skip_whitespace ()
     }
     return token;
 }
-int token_skip_whitespace_newline ()
+int token_skip_whitespace_newline (int token)
 {
     while ((token = token_next()), token == WHITESPACE || token == NEWLINE)
     {
@@ -69,7 +69,8 @@ int token_skip_whitespace_newline ()
 glob_t glob (const char *pattern)
 {
     glob_t results;
-    g_glob (pattern, GLOB_BRACE | GLOB_MARK | GLOB_NOCHECK | GLOB_TILDE, NULL, &results);
+    int ret = g_glob (pattern, GLOB_BRACE | GLOB_MARK | GLOB_NOCHECK | GLOB_TILDE, NULL, &results);
+    DEBUG_PRINT ("debug: g_glob exits with (%d)\n", ret);
     return results;
 }
 
@@ -123,45 +124,39 @@ string_list *split_word (const char *input)
     return string_list_head;
 }
 
-string simple_string_interpret (int flags)
+string_list *interpret_string (int token, uint64_t flags)
 {
-    int stop_token;
-    if (flags & SIM_STR_INT_DOUBLE_QUOTE)
+    // after that this behavior can be change base on flags
+    // implement later ...
+    if (token == TOK_NIL)
     {
-        stop_token = DOUBLE_QUOTE;
-    }
-    else if (flags & SIM_STR_INT_BRACE)
-    {
-        stop_token = -1 -1 ;
+        token = token_skip_whitespace_newline (token);
     }
 
-    string result = new_string();
-    while ((token = token_next ()) != stop_token)
-    {
-        if (token == 0) {
-            fprintf (stderr, "Yar: Unexpected end of line, the double quote string hasn't not been closed.\n");
-            fprintf (stderr, "\"%s\n", result);
-            fprintf (stderr, "%*s^ Missing double quote here\n", (int)strlen (result) + 1, "");
-            syntax_error = 1;
-            return result;
-        }
-        DEBUG_ASSERT (token == STRING);
-        result = string_append_back (result, yylval.str_frag.value);
-        free_string (yylval.str_frag.value);
-    }
-    return result;
-}
-
-string_list *interpret_string ()
-{
     // yypstate *parser = yypstate_new ();
     // int status;
-
     string_fragment_list *string_fragment_head = NULL, *string_fragment_tail = NULL;
-    for (; token == STRING; token = token_next())
+    for(;; token = token_next())
     {
-        string_fragment str_frag = yylval.str_frag;
-        string_fragment_list_push_back (&string_fragment_head, &string_fragment_tail, &str_frag);
+        DEBUG_PRINT ("debug: interpret_string recieve (%d)\n", token);
+        string_fragment str_frag;
+        if (token == STRING)
+        {
+            str_frag = yylval.str_frag;
+            string_fragment_list_push_back (&string_fragment_head, &string_fragment_tail, &str_frag);
+        }
+        else if ((flags & SIM_STR_INT_DOUBLE_QUOTE) && token == DOUBLE_QUOTE) {
+            DEBUG_PRINT("debug: interpret_string exit with token (%d)\n", token);
+            break;
+        }
+        else if ((flags & SIM_STR_INT_BRACE) && token == BRACE_RIGHT) {
+            DEBUG_PRINT("debug: interpret_string exit with token (%d)\n", token);
+            break;
+        }
+        else {
+            DEBUG_PRINT("debug: interpret_string exit with token (%d)\n", token);
+            break;
+        }
     }
 
     string_list *string_list_head = NULL, *string_list_tail = NULL;
@@ -213,24 +208,34 @@ string_list *interpret_string ()
         string_list_push_back (&string_list_head, &string_list_tail, &current_string);
     }
 
-    // do glob
     string_list *result = NULL, *result_tail = NULL;
-    for (string_list *ptr = string_list_head; ptr; ptr = ptr->next)
-    {
-        glob_t glob_results = glob (ptr->str);
-        for (size_t i = 0; i < glob_results.gl_pathc; ++i) {
-            string tmp = new_string_2 (glob_results.gl_pathv[i]);
-            string_list_push_back (&result, &result_tail, &tmp);
-        }
-        g_globfree (&glob_results);
-    }
 
-    DEBUG_PRINT ("before glob\n");
-    debug_string_list (string_list_head);
-    DEBUG_PRINT ("after glob\n");
-    debug_string_list (result);
+    if (flags & SIM_STR_INT_DO_GLOB)
+    {
+        // do glob
+        for (string_list *ptr = string_list_head; ptr; ptr = ptr->next)
+        {
+            glob_t glob_results = glob (ptr->str);
+            for (size_t i = 0; i < glob_results.gl_pathc; ++i) {
+                string tmp = new_string_2 (glob_results.gl_pathv[i]);
+                string_list_push_back (&result, &result_tail, &tmp);
+            }
+            g_globfree (&glob_results);
+        }
+        DEBUG_PRINT ("debug: before glob\n");
+        debug_string_list (string_list_head);
+        DEBUG_PRINT ("debug: after glob\n");
+        debug_string_list (result);
+
+        free_string_list (string_list_head);
+    }
+    else
+    {
+        result = string_list_head;
+        DEBUG_PRINT ("debug: result (no glob)\n");
+        debug_string_list (result);
+    }
     free_string_fragment_list (string_fragment_head);
-    free_string_list (string_list_head);
     // yypush_parse(parser, 0, &yylval);
     // yypstate_delete (parser);
     return result;
@@ -312,9 +317,8 @@ void interpret(const char *source)
 
     // yypstate *parser = yypstate_new ();
     // yypstate_delete (parser);
-    token = token_skip_whitespace_newline();
     // interpret_command();
-    free_string_list (interpret_string());
+    free_string_list (interpret_string(TOK_NIL, SIM_STR_INT_DO_GLOB));
 
     if (runtime_error == 0 && syntax_error == 0) {
         // run
