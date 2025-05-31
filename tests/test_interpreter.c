@@ -14,6 +14,8 @@ int main ()
     // must failed gracefully not cause error
     test ("\"  ${USER}  $USER @@ @ @ @   \"abxemrovzvz\'cxjdf  jdk   djk  @@@ \'\" j kd  jdk jk  ");
     test ("\"  ${USER}  $USER @@ @ @ @   \"abxemrovzvz\'cxjdf  jdk   djk  @@@ \'\" j kd  jdk jk  \'");
+
+    test ("\"a b c d e f\"{g,h}");
     return 0;
 }
 
