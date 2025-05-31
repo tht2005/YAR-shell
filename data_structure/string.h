@@ -31,9 +31,6 @@ string string_push_back (string s, char c);
 
 string string_pop_back (string s);
 
-string ptr_to_string (void *ptr);
-void *string_to_ptr (string s);
-
 string string_append_back (string str, const char* a);
 string new_substr (const char *begin, const char *end);
 
