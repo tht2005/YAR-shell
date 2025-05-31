@@ -100,7 +100,111 @@ void yyerror(const char *s);
 #  endif
 # endif
 
-#include "yar_parser.tab.h"
+
+/* Debug traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 0
+#endif
+#if YYDEBUG
+extern int yydebug;
+#endif
+/* "%code requires" blocks.  */
+#line 5 "yar_parser.y"
+
+    #include "yar_ast.h"
+    #include "data_structure/string.h"
+
+#line 118 "yar_parser.tab.c"
+
+/* Token kinds.  */
+#ifndef YYTOKENTYPE
+# define YYTOKENTYPE
+  enum yytokentype
+  {
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    TOK_NIL = 258,                 /* TOK_NIL  */
+    PREFIX_PROGRAM_SEGMENT = 259,  /* PREFIX_PROGRAM_SEGMENT  */
+    PREFIX_FUNCTION = 260,         /* PREFIX_FUNCTION  */
+    PREFIX_CODEBLOCK = 261,        /* PREFIX_CODEBLOCK  */
+    PREFIX_ASSIGNMENT = 262,       /* PREFIX_ASSIGNMENT  */
+    PREFIX_REDIRECTION = 263,      /* PREFIX_REDIRECTION  */
+    PREFIX_COMMAND = 264,          /* PREFIX_COMMAND  */
+    PREFIX_SUBSTITUTION_STRING = 265, /* PREFIX_SUBSTITUTION_STRING  */
+    PREFIX_SUBSTITUTION_COMMAND = 266, /* PREFIX_SUBSTITUTION_COMMAND  */
+    PREFIX_SUBSTITUTION_ARITHMETIC = 267, /* PREFIX_SUBSTITUTION_ARITHMETIC  */
+    IDENTIFIER_ASSIGNMENT = 268,   /* IDENTIFIER_ASSIGNMENT  */
+    STRING = 269,                  /* STRING  */
+    SEMICOLON = 270,               /* SEMICOLON  */
+    SEMICOLON_DOUBLE = 271,        /* SEMICOLON_DOUBLE  */
+    NEWLINE = 272,                 /* NEWLINE  */
+    LESS = 273,                    /* LESS  */
+    GREATER = 274,                 /* GREATER  */
+    GREATER_DOUBLE = 275,          /* GREATER_DOUBLE  */
+    AND_GREATER = 276,             /* AND_GREATER  */
+    GREATER_AND = 277,             /* GREATER_AND  */
+    AND_GREATER_DOUBLE = 278,      /* AND_GREATER_DOUBLE  */
+    LESS_AND = 279,                /* LESS_AND  */
+    NUM_LESS = 280,                /* NUM_LESS  */
+    NUM_GREATER = 281,             /* NUM_GREATER  */
+    NUM_LESS_AND = 282,            /* NUM_LESS_AND  */
+    NUM_GREATER_AND = 283,         /* NUM_GREATER_AND  */
+    PLUS = 284,                    /* PLUS  */
+    MINUS = 285,                   /* MINUS  */
+    TIMES = 286,                   /* TIMES  */
+    DIVIDE = 287,                  /* DIVIDE  */
+    BRACE_LEFT = 288,              /* BRACE_LEFT  */
+    BRACE_RIGHT = 289,             /* BRACE_RIGHT  */
+    CODEBLOCK_BEGIN = 290,         /* CODEBLOCK_BEGIN  */
+    CODEBLOCK_END = 291,           /* CODEBLOCK_END  */
+    DOUBLE_QUOTE = 292,            /* DOUBLE_QUOTE  */
+    WHITESPACE = 293               /* WHITESPACE  */
+  };
+  typedef enum yytokentype yytoken_kind_t;
+#endif
+
+/* Value type.  */
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+union YYSTYPE
+{
+#line 20 "yar_parser.y"
+
+    string str;
+    string_fragment str_frag;
+    redirection redirection;
+    struct {
+        string_fragment_list *head, *tail;
+    } fragment_list;
+
+#line 182 "yar_parser.tab.c"
+
+};
+typedef union YYSTYPE YYSTYPE;
+# define YYSTYPE_IS_TRIVIAL 1
+# define YYSTYPE_IS_DECLARED 1
+#endif
+
+
+
+
+#ifndef YYPUSH_MORE_DEFINED
+# define YYPUSH_MORE_DEFINED
+enum { YYPUSH_MORE = 4 };
+#endif
+
+typedef struct yypstate yypstate;
+
+
+int yypush_parse (yypstate *ps,
+                  int pushed_char, YYSTYPE const *pushed_val);
+
+yypstate *yypstate_new (void);
+void yypstate_delete (yypstate *ps);
+
+
+
 /* Symbol kind.  */
 enum yysymbol_kind_t
 {
@@ -1511,7 +1615,7 @@ yyreduce:
                                                                     {
                                                                         // construct assignment list here
                                                                     }
-#line 1515 "yar_parser.tab.c"
+#line 1619 "yar_parser.tab.c"
     break;
 
   case 16: /* assignment: PREFIX_ASSIGNMENT IDENTIFIER_ASSIGNMENT STRING  */
@@ -1521,7 +1625,7 @@ yyreduce:
                                                                         (yyval.str) = string_append_back ((yyval.str), (yyvsp[0].str_frag).value);
                                                                         DEBUG_PRINT("debug: assignment: `%s`\n", (yyval.str));
                                                                     }
-#line 1525 "yar_parser.tab.c"
+#line 1629 "yar_parser.tab.c"
     break;
 
   case 18: /* arguments_and_redirections_list: arguments_and_redirections_list STRING  */
@@ -1529,7 +1633,7 @@ yyreduce:
                                                                                         {
                                                                                             DEBUG_PRINT("debug: argument `%s` append to list\n", (yyvsp[0].str_frag).value);
                                                                                         }
-#line 1533 "yar_parser.tab.c"
+#line 1637 "yar_parser.tab.c"
     break;
 
   case 19: /* arguments_and_redirections_list: arguments_and_redirections_list redirection  */
@@ -1537,7 +1641,7 @@ yyreduce:
                                                                                         {
                                                                                             DEBUG_PRINT("debug: redirection append to list\n");
                                                                                         }
-#line 1541 "yar_parser.tab.c"
+#line 1645 "yar_parser.tab.c"
     break;
 
   case 20: /* redirection: PREFIX_REDIRECTION LESS STRING  */
@@ -1546,7 +1650,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", LESS, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (LESS, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1550 "yar_parser.tab.c"
+#line 1654 "yar_parser.tab.c"
     break;
 
   case 21: /* redirection: PREFIX_REDIRECTION NUM_LESS STRING  */
@@ -1555,7 +1659,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (NUM_LESS, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1559 "yar_parser.tab.c"
+#line 1663 "yar_parser.tab.c"
     break;
 
   case 22: /* redirection: PREFIX_REDIRECTION GREATER STRING  */
@@ -1564,7 +1668,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (GREATER, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1568 "yar_parser.tab.c"
+#line 1672 "yar_parser.tab.c"
     break;
 
   case 23: /* redirection: PREFIX_REDIRECTION NUM_GREATER STRING  */
@@ -1573,7 +1677,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (NUM_GREATER, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1577 "yar_parser.tab.c"
+#line 1681 "yar_parser.tab.c"
     break;
 
   case 24: /* redirection: PREFIX_REDIRECTION GREATER_DOUBLE STRING  */
@@ -1582,7 +1686,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1586 "yar_parser.tab.c"
+#line 1690 "yar_parser.tab.c"
     break;
 
   case 25: /* redirection: PREFIX_REDIRECTION AND_GREATER STRING  */
@@ -1591,7 +1695,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (AND_GREATER, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1595 "yar_parser.tab.c"
+#line 1699 "yar_parser.tab.c"
     break;
 
   case 26: /* redirection: PREFIX_REDIRECTION GREATER_AND STRING  */
@@ -1600,7 +1704,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_AND, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (GREATER_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1604 "yar_parser.tab.c"
+#line 1708 "yar_parser.tab.c"
     break;
 
   case 27: /* redirection: PREFIX_REDIRECTION AND_GREATER_DOUBLE STRING  */
@@ -1609,7 +1713,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (AND_GREATER_DOUBLE, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1613 "yar_parser.tab.c"
+#line 1717 "yar_parser.tab.c"
     break;
 
   case 28: /* redirection: PREFIX_REDIRECTION LESS_AND STRING  */
@@ -1618,7 +1722,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", LESS_AND, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (LESS_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1622 "yar_parser.tab.c"
+#line 1726 "yar_parser.tab.c"
     break;
 
   case 29: /* redirection: PREFIX_REDIRECTION NUM_LESS_AND STRING  */
@@ -1627,7 +1731,7 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS_AND, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (NUM_LESS_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1631 "yar_parser.tab.c"
+#line 1735 "yar_parser.tab.c"
     break;
 
   case 30: /* redirection: PREFIX_REDIRECTION NUM_GREATER_AND STRING  */
@@ -1636,11 +1740,11 @@ yyreduce:
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER_AND, (yyvsp[0].str_frag).value);
                                                                         (yyval.redirection) = make_redirection (NUM_GREATER_AND, (yyvsp[0].str_frag).value);
                                                                     }
-#line 1640 "yar_parser.tab.c"
+#line 1744 "yar_parser.tab.c"
     break;
 
 
-#line 1644 "yar_parser.tab.c"
+#line 1748 "yar_parser.tab.c"
 
       default: break;
     }

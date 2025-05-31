@@ -464,14 +464,8 @@ IDENTIFIER          {LETTER}{ALNUM}*
 \${IDENTIFIER}          {
                             DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
                             string content = variable_substitution_handler(yytext);
-                            if (quote_expansion ())
-                            {
-                                yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
-                            }
-                            else {
-                                content = __add_escape_character_except_space (content);
-                                yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
-                            }
+                            content = __add_escape_character_except_space (content);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
                             return STRING;
                         }
 
@@ -479,14 +473,8 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
                             string content = string_substitution_handler(yytext);
                             fprintf (stderr, "content debug: %s\n", content);
-                            if (quote_expansion ())
-                            {
-                                yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
-                            }
-                            else {
-                                content = __add_escape_character_except_space (content);
-                                yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
-                            }
+                            content = __add_escape_character_except_space (content);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
                             fprintf (stderr, "content debug: %s\n", content);
                             return STRING;
                         }

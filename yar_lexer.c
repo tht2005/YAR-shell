@@ -1371,33 +1371,21 @@ YY_RULE_SETUP
 {
                             DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
                             string content = variable_substitution_handler(yytext);
-                            if (quote_expansion ())
-                            {
-                                yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
-                            }
-                            else {
-                                content = __add_escape_character_except_space (content);
-                                yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
-                            }
+                            content = __add_escape_character_except_space (content);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
                             return STRING;
                         }
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 478 "yar_lexer.l"
+#line 472 "yar_lexer.l"
 {
                             DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
                             string content = string_substitution_handler(yytext);
                             fprintf (stderr, "content debug: %s\n", content);
-                            if (quote_expansion ())
-                            {
-                                yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
-                            }
-                            else {
-                                content = __add_escape_character_except_space (content);
-                                yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
-                            }
+                            content = __add_escape_character_except_space (content);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
                             fprintf (stderr, "content debug: %s\n", content);
                             return STRING;
                         }
@@ -1405,7 +1393,7 @@ YY_RULE_SETUP
 
 case 3:
 YY_RULE_SETUP
-#line 495 "yar_lexer.l"
+#line 483 "yar_lexer.l"
 {
                             yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
                                                                     new_string_2 (yytext));
@@ -1415,7 +1403,7 @@ YY_RULE_SETUP
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 500 "yar_lexer.l"
+#line 488 "yar_lexer.l"
 {
                             ++yylineno;
                             yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
@@ -1425,7 +1413,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 506 "yar_lexer.l"
+#line 494 "yar_lexer.l"
 {
                             current_quoted = 0;
                             yy_pop_state ();
@@ -1434,7 +1422,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 511 "yar_lexer.l"
+#line 499 "yar_lexer.l"
 {
                             DEBUG_ASSERT (strlen(yytext) == 1);
                             if (yytext[0] == '\n')
@@ -1449,7 +1437,7 @@ YY_RULE_SETUP
 
 case 7:
 YY_RULE_SETUP
-#line 522 "yar_lexer.l"
+#line 510 "yar_lexer.l"
 {
                             DEBUG_PRINT ("debug: enter double quoted mode\n");
                             current_quoted = 1;
@@ -1471,7 +1459,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 541 "yar_lexer.l"
+#line 529 "yar_lexer.l"
 {
     if (keep_whitespace_as_string ())
     {
@@ -1485,7 +1473,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 552 "yar_lexer.l"
+#line 540 "yar_lexer.l"
 {
     if (store_identifier_as_string ())
     {
@@ -1502,7 +1490,7 @@ YY_RULE_SETUP
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 565 "yar_lexer.l"
+#line 553 "yar_lexer.l"
 {
                             // skip all the   # ..... \n
                             // return newline token as the comment should not be exist
@@ -1513,13 +1501,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 572 "yar_lexer.l"
+#line 560 "yar_lexer.l"
 ;
 	YY_BREAK
 
 case 12:
 YY_RULE_SETUP
-#line 574 "yar_lexer.l"
+#line 562 "yar_lexer.l"
 {
                             if (treat_num_sign_as_string ())
                             {
@@ -1536,7 +1524,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 588 "yar_lexer.l"
+#line 576 "yar_lexer.l"
 {
                             DEBUG_ASSERT (strlen(yytext) == 2);
                             string content = new_string_2 (yytext + 1);
@@ -1547,7 +1535,7 @@ YY_RULE_SETUP
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 595 "yar_lexer.l"
+#line 583 "yar_lexer.l"
 {
                             string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
                             content = __add_escape_character_all (content);
@@ -1557,7 +1545,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 601 "yar_lexer.l"
+#line 589 "yar_lexer.l"
 {
                                     yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED,
                                                             new_string_2(yytext) );
@@ -1567,7 +1555,7 @@ YY_RULE_SETUP
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 607 "yar_lexer.l"
+#line 595 "yar_lexer.l"
 {
     ++yylineno;
     return NEWLINE;
@@ -1575,98 +1563,98 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 611 "yar_lexer.l"
+#line 599 "yar_lexer.l"
 {
     return SEMICOLON;
 }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 614 "yar_lexer.l"
+#line 602 "yar_lexer.l"
 {
     return SEMICOLON_DOUBLE;
 }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 618 "yar_lexer.l"
+#line 606 "yar_lexer.l"
 {
     return LESS;
 }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 621 "yar_lexer.l"
+#line 609 "yar_lexer.l"
 {
     return NUM_LESS;
 }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 624 "yar_lexer.l"
+#line 612 "yar_lexer.l"
 {
     return GREATER;
 }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 627 "yar_lexer.l"
+#line 615 "yar_lexer.l"
 {
     return NUM_GREATER;
 }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 630 "yar_lexer.l"
+#line 618 "yar_lexer.l"
 {
     return GREATER_DOUBLE;
 }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 633 "yar_lexer.l"
+#line 621 "yar_lexer.l"
 {
     return AND_GREATER;
 }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 636 "yar_lexer.l"
+#line 624 "yar_lexer.l"
 {
     return GREATER_AND;
 }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 639 "yar_lexer.l"
+#line 627 "yar_lexer.l"
 {
     return AND_GREATER_DOUBLE;
 }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 642 "yar_lexer.l"
+#line 630 "yar_lexer.l"
 {
     return LESS_AND;
 }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 645 "yar_lexer.l"
+#line 633 "yar_lexer.l"
 {
     return NUM_LESS_AND;
 }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 648 "yar_lexer.l"
+#line 636 "yar_lexer.l"
 {
     return NUM_GREATER_AND;
 }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 652 "yar_lexer.l"
+#line 640 "yar_lexer.l"
 {
                             fprintf (stderr, "Unexpected character: %c\n", yytext[0]);
                         }
@@ -1675,7 +1663,7 @@ case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(DOUBLE_QUOTE_STRING):
 case YY_STATE_EOF(SINGLE_QUOTE_STRING):
 case YY_STATE_EOF(COMMENT):
-#line 655 "yar_lexer.l"
+#line 643 "yar_lexer.l"
 {
                             DEBUG_PRINT ("flex: debug: exit with state (%d)\n", YY_START);
                             if (comment_mode)
@@ -1704,10 +1692,10 @@ case YY_STATE_EOF(COMMENT):
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 681 "yar_lexer.l"
+#line 669 "yar_lexer.l"
 ECHO;
 	YY_BREAK
-#line 1710 "yar_lexer.c"
+#line 1698 "yar_lexer.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2769,7 +2757,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 681 "yar_lexer.l"
+#line 669 "yar_lexer.l"
 
 
 string __add_escape_character_all (string input)
