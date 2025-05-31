@@ -45,6 +45,11 @@ set(SRC_FILES   yar.c
             )
 add_library (Program STATIC ${SRC_FILES})
 add_executable(yar ${SRC_FILES})
+target_link_options(yar PRIVATE
+    "-Wl,--whole-archive"
+    libBuiltinCommands.a
+    "-Wl,--no-whole-archive"
+)
 target_link_libraries (
     yar     ${READLINE_LIBRARIES}
             parent_libs
