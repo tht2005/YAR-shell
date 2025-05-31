@@ -62,6 +62,19 @@ void free_string_list (string_list *ptr)
     ptr = nxt;
   }
 }
+string string_list_retrieve_string (string_list *list)
+{
+  string res = new_string();
+  for (; list; list = list->next)
+  {
+    res = string_append_back (res, list->str);
+    if (list->next)
+    {
+      res = string_push_back (res, ' ');
+    }
+  }
+  return res;
+}
 
 // string_fragment_list_chain *new_string_fragment_list_chain (string_fragment_list *list)
 // {

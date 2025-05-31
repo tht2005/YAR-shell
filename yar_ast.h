@@ -46,6 +46,7 @@ typedef struct string_list {
 
 string_list *new_string_list (string str);
 void free_string_list (string_list *ptr);
+string string_list_retrieve_string (string_list *list);
 
 typedef struct redirection {
 
