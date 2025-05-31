@@ -12,6 +12,11 @@ struct termios shell_tmodes;
 int shell_terminal;
 int shell_is_interactive;
 
+void sigint_handler (int sig)
+{
+    exit (0);
+}
+
 void init_shell () {
     shell_terminal = STDIN_FILENO;
     shell_is_interactive = isatty (shell_terminal);
@@ -20,7 +25,7 @@ void init_shell () {
             kill (- shell_pgid, SIGTTIN);
         }
 
-        signal (SIGINT, SIG_IGN);
+        signal (SIGINT, sigint_handler);
         signal (SIGQUIT, SIG_IGN);
         signal (SIGTSTP, SIG_IGN);
         signal (SIGTTIN, SIG_IGN);
