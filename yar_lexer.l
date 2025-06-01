@@ -14,34 +14,38 @@ string __add_escape_character_all (string input);
 string __add_escape_character_except (string input, const char *delim);
 string __add_escape_character_except_space (string input);
 
+string single_quote_string_buf;
+
 int current_quoted;
-int current_brace;
 int arith_mode;
 int comment_mode;
 // int treat_brace_as_string;
 void init_lexer ()
 {
     current_quoted = 0;
-    current_brace = 0;
     arith_mode = 0;
     comment_mode = 0;
 }
 
+int not_split_expansion ()
+{
+    return current_quoted;
+}
 int keep_whitespace_as_string ()
 {
-    return current_quoted || current_brace;
+    return current_quoted;
 }
 int store_identifier_as_string ()
 {
-    return current_quoted || current_brace;
+    return current_quoted;
 }
 int quote_expansion ()
 {
-    return current_quoted || current_brace;
+    return current_quoted;
 }
 int treat_num_sign_as_string ()
 {
-    return current_quoted || current_brace;
+    return current_quoted;
 }
 
 // int yypeeklex ();
@@ -63,8 +67,7 @@ WHITESPACE          [ \t]
 IDENTIFIER          {LETTER}{ALNUM}*
 
 %s                  DOUBLE_QUOTE_STRING
-%s                  SINGLE_QUOTE_STRING
-
+%x                  SINGLE_QUOTE_STRING
 %x                  COMMENT
 
 /*
@@ -464,18 +467,31 @@ IDENTIFIER          {LETTER}{ALNUM}*
 \${IDENTIFIER}          {
                             DEBUG_PRINT("debug: flex catch variable substitution: `%s`\n", yytext);
                             string content = variable_substitution_handler(yytext);
-                            content = __add_escape_character_except_space (content);
-                            yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
+                            if (not_split_expansion ())
+                            {
+                                content = __add_escape_character_all (content);
+                                yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
+                            }
+                            else {
+                                content = __add_escape_character_except_space (content);
+                                yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
+                            }
                             return STRING;
                         }
 
 \$\{([^\\}]|\\.)*\}     {
                             DEBUG_PRINT("debug: flex catch string substitution: `%s`\n", yytext);
                             string content = string_substitution_handler(yytext);
-                            fprintf (stderr, "content debug: %s\n", content);
-                            content = __add_escape_character_except_space (content);
                             yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
-                            fprintf (stderr, "content debug: %s\n", content);
+                            if (not_split_expansion ())
+                            {
+                                content = __add_escape_character_all (content);
+                                yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
+                            }
+                            else {
+                                content = __add_escape_character_except_space (content);
+                                yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
+                            }
                             return STRING;
                         }
 
@@ -521,6 +537,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
                                 content = new_string_2 (list->str);
                                 content = __add_escape_character_all (content);
                             }
+                            DEBUG_PRINT ("debug: `%s`\n", content);
                             yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
                             free_string_list (list);
                             return STRING;
@@ -580,7 +597,27 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             return STRING;
                         }
 
-\'([^\'])*\'            {
+<SINGLE_QUOTE_STRING>{
+    \'                  {
+                            yy_pop_state ();
+                            single_quote_string_buf = __add_escape_character_all (single_quote_string_buf);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, single_quote_string_buf);
+                            single_quote_string_buf = NULL;
+                            return STRING;
+                        }
+    ([^\'])*            {
+                            single_quote_string_buf = string_append_back (single_quote_string_buf, yytext);
+                        }
+    <<EOF>>             {
+                            fprintf (stderr, "Yar: Unexpected end of file, single quote string do not end!\n");
+                            return 0;
+                        }
+}
+\'                      {
+                            yy_push_state (SINGLE_QUOTE_STRING);
+                            single_quote_string_buf = new_string ();
+                        }
+\'\'            {
                             string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
                             content = __add_escape_character_all (content);
                             yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
@@ -650,10 +687,6 @@ IDENTIFIER          {LETTER}{ALNUM}*
                                 comment_mode = 0;
                                 yy_pop_state ();
                                 return NEWLINE;
-                            }
-                            else if (current_brace)
-                            {
-
                             }
                             else if (current_quoted)
                             {
