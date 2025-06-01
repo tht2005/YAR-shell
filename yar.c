@@ -85,12 +85,18 @@ void run_prompt () {
     char ps[128] = "";
     char *user = getenv("USER");
     char *hostname = getenv("HOSTNAME");
-    char *cwd = getcwd (NULL, 0);
 
     string input;
+    while (1) {
+        char *cwd = getcwd (NULL, 0);
+        snprintf (ps, 100, "%s@%s %s $ ", user, hostname, cwd);
+        free (cwd);
 
-    snprintf (ps, 100, "%s@%s %s $ ", user, hostname, cwd);
-    while ( (input = read_multiline_input (ps)) ) {
+        input = read_multiline_input(ps);
+        if (input == NULL) {
+            break;
+        }
+
         if (*input) {
             add_history (input);
         }
