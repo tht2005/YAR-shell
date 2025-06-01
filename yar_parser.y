@@ -3,8 +3,10 @@
 %define parse.error verbose
 
 %code requires {
-    #include "yar_ast.h"
-    #include "data_structure/string.h"
+#include "yar_ast.h"
+#include "data_structure/string.h"
+
+extern command *command_result;
 }
 
 %{
@@ -15,15 +17,18 @@
 
 int yylex(void);
 void yyerror(const char *s);
+
+command *command_result;
+
 %}
 
 %union {
     string str;
     string_fragment str_frag;
     redirection redirection;
-    struct {
-        string_fragment_list *head, *tail;
-    } fragment_list;
+    string_list *str_list;
+    argument_list *argument_list;
+    command *command;
 }
 
 %token TOK_NIL
@@ -40,7 +45,8 @@ void yyerror(const char *s);
 %token PREFIX_SUBSTITUTION_ARITHMETIC 
 
 %token <str> IDENTIFIER_ASSIGNMENT
-%token <str_frag> STRING
+%token <str> STRING
+%token STRING_LIST
 %token SEMICOLON SEMICOLON_DOUBLE
 %token NEWLINE
 
@@ -61,13 +67,19 @@ void yyerror(const char *s);
 
 %type <str> assignment
 %type <redirection> redirection
+%type <str_list> assignment_list;
+%type <argument_list> arguments_and_redirections_list;
+%type <command> command;
 
+%start input
 
 %%
 
 input:          program_segment
      |          function
-     |          command
+     |          command         {
+                                    command_result = $1;
+                                }
      |          substitution
      ;
 
@@ -89,101 +101,117 @@ function:;
 statement:;
 
 command:        PREFIX_COMMAND assignment_list arguments_and_redirections_list
+                                                                    {
+                                                                        $$ = new_command ($2, $3);
+                                                                    }
        ;
 
 assignment_list:    /* empty */
-               |    assignment_list assignment                      {
-                                                                        // construct assignment list here
+                                                                    {
+                                                                        $$ = NULL;
+                                                                    }
+               |    assignment assignment_list                      {
+                                                                        string_list *list = new_string_list ($1);
+                                                                        list->next = $2;
+                                                                        $$ = list;
                                                                     }
                ;
 assignment:     PREFIX_ASSIGNMENT IDENTIFIER_ASSIGNMENT STRING      {
                                                                         $$ = new_string_2 ($2);
-                                                                        $$ = string_append_back ($$, $3.value);
-                                                                        DEBUG_PRINT("debug: assignment: `%s`\n", $$);
+                                                                        $$ = string_append_back ($$, $3);
                                                                     }
           ;
 
 arguments_and_redirections_list:    /* empty */
-                               |    arguments_and_redirections_list STRING
                                                                                         {
-                                                                                            DEBUG_PRINT("debug: argument `%s` append to list\n", $2.value);
+                                                                                            $$ = NULL;
                                                                                         }
-                               |    arguments_and_redirections_list redirection
+                               |    STRING arguments_and_redirections_list 
                                                                                         {
-                                                                                            DEBUG_PRINT("debug: redirection append to list\n");
+                                                                                            argument_list *list = new_argument_list ();
+                                                                                            list->type = AL_ARGUMENT;
+                                                                                            list->arg = $1;
+                                                                                            list->next = $2;
+                                                                                            $$ = list;
+                                                                                            DEBUG_PRINT("argument_list: argument `%s` append to list\n", $1);
+                                                                                        }
+                               |    redirection arguments_and_redirections_list 
+                                                                                        {
+                                                                                            DEBUG_PRINT("redirection_list: redirection (%d) `%s` append to list\n", $1.type, $1.file);
+                                                                                            argument_list *list = new_argument_list();
+                                                                                            list->type = AL_REDIRECTION;
+                                                                                            list->redirection = $1;
+                                                                                            list->next = $2;
+                                                                                            $$ = list;
                                                                                         }
                                ;
 
 redirection:    PREFIX_REDIRECTION LESS STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS, $3.value);
-                                                                        $$ = make_redirection (LESS, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS, $3);
+                                                                        $$ = make_redirection (LESS, $3);
                                                                     }
            |    PREFIX_REDIRECTION NUM_LESS STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS, $3.value);
-                                                                        $$ = make_redirection (NUM_LESS, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS, $3);
+                                                                        $$ = make_redirection (NUM_LESS, $3);
                                                                     }
            |    PREFIX_REDIRECTION GREATER STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER, $3.value);
-                                                                        $$ = make_redirection (GREATER, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER, $3);
+                                                                        $$ = make_redirection (GREATER, $3);
                                                                     }
            |    PREFIX_REDIRECTION NUM_GREATER STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER, $3.value);
-                                                                        $$ = make_redirection (NUM_GREATER, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER, $3);
+                                                                        $$ = make_redirection (NUM_GREATER, $3);
                                                                     }
            |    PREFIX_REDIRECTION GREATER_DOUBLE STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_DOUBLE, $3.value);
-                                                                        $$ = make_redirection (GREATER_DOUBLE, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_DOUBLE, $3);
+                                                                        $$ = make_redirection (GREATER_DOUBLE, $3);
                                                                     }
            |    PREFIX_REDIRECTION AND_GREATER STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER, $3.value);
-                                                                        $$ = make_redirection (AND_GREATER, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER, $3);
+                                                                        $$ = make_redirection (AND_GREATER, $3);
                                                                     }
            |    PREFIX_REDIRECTION GREATER_AND STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_AND, $3.value);
-                                                                        $$ = make_redirection (GREATER_AND, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_AND, $3);
+                                                                        $$ = make_redirection (GREATER_AND, $3);
                                                                     }
            |    PREFIX_REDIRECTION AND_GREATER_DOUBLE STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER_DOUBLE, $3.value);
-                                                                        $$ = make_redirection (AND_GREATER_DOUBLE, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER_DOUBLE, $3);
+                                                                        $$ = make_redirection (AND_GREATER_DOUBLE, $3);
                                                                     }
            |    PREFIX_REDIRECTION LESS_AND STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS_AND, $3.value);
-                                                                        $$ = make_redirection (LESS_AND, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", LESS_AND, $3);
+                                                                        $$ = make_redirection (LESS_AND, $3);
                                                                     }
            |    PREFIX_REDIRECTION NUM_LESS_AND STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS_AND, $3.value);
-                                                                        $$ = make_redirection (NUM_LESS_AND, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS_AND, $3);
+                                                                        $$ = make_redirection (NUM_LESS_AND, $3);
                                                                     }
            |    PREFIX_REDIRECTION NUM_GREATER_AND STRING
                                                                     {
-                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER_AND, $3.value);
-                                                                        $$ = make_redirection (NUM_GREATER_AND, $3.value);
+                                                                        DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER_AND, $3);
+                                                                        $$ = make_redirection (NUM_GREATER_AND, $3);
                                                                     }
            /* and more ... */
            ;
 
 substitution:       substitution_command
             |       substitution_arithmetic
-            |       substitution_string
             ;
 
 substitution_command:   PREFIX_SUBSTITUTION_COMMAND "$(" program_segment ")"
                     ;
 
 substitution_arithmetic:    PREFIX_SUBSTITUTION_ARITHMETIC "$((" "))"
-
-substitution_string:    PREFIX_SUBSTITUTION_STRING "${" STRING "}"
-                   ;
 
 %%
 

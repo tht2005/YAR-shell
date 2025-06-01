@@ -2,8 +2,32 @@
 #include "yar_ast.h"
 
 #include <assert.h>
+
 #include <string.h>
 
+void debug_command (command *command)
+{
+    if (command->assignments)
+    {
+        for (string_list *ptr = command->assignments; ptr; ptr = ptr->next)
+        {
+            DEBUG_PRINT("debug: assignment: `%s`\n", ptr->str);
+        }
+    }
+    if (command->arguments_and_redirections) {
+        for (argument_list *ptr = command->arguments_and_redirections; ptr; ptr = ptr->next)
+        {
+            if (ptr->type == AL_ARGUMENT)
+            {
+                DEBUG_PRINT("debug: argument: `%s`\n", ptr->arg);
+            }
+            else
+            {
+                DEBUG_PRINT("debug: redirection: (%d) `%s`\n", ptr->redirection.type, ptr->redirection.file);
+            }
+        }
+    }
+}
 void debug_string_list (string_list *list)
 {
     DEBUG_PRINT("debug: begin string list\n");

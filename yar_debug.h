@@ -15,5 +15,6 @@
 
 void debug_string_list (string_list *list);
 void debug_string_fragment_list (string_fragment_list *list);
+void debug_command (command *command);
 
 #endif

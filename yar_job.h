@@ -5,11 +5,12 @@
 #include <termios.h>
 
 #include "data_structure/string.h"
+#include "yar_ast.h"
 
 typedef struct process
 {
   struct process *next;
-  int cnt_assignment;
+  string_list *environment;
   int argc;
   string *argv;
   pid_t pid;
@@ -30,7 +31,9 @@ typedef struct job
   int stdin, stdout, stderr;
 } job;
 
+process *new_process ();
 void free_process (process *);
+job *new_job ();
 void free_job (job *);
 
 void format_job_info (job *j, const char *status);

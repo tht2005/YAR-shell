@@ -10,42 +10,44 @@
 #include "yar_substitution.h"
 #include "yar_interpreter.h"
 
-string __add_escape_character_all (string input);
-string __add_escape_character_except (string input, const char *delim);
-string __add_escape_character_except_space (string input);
+string __add_escape_character_all (string str);
+string __add_escape_character_except (string str, const char *delim);
+string __add_escape_character_except_space (string str);
 
-string single_quote_string_buf;
+string single_quote_str_buf ;
 
-int current_quoted;
+int in_double_quote;
+int in_single_quote;
 int arith_mode;
 int comment_mode;
 // int treat_brace_as_string;
 void init_lexer ()
 {
-    current_quoted = 0;
+    in_double_quote = 0;
+    in_single_quote = 0;
     arith_mode = 0;
     comment_mode = 0;
 }
 
 int not_split_expansion ()
 {
-    return current_quoted;
+    return in_double_quote;
 }
 int keep_whitespace_as_string ()
 {
-    return current_quoted;
+    return in_double_quote;
 }
 int store_identifier_as_string ()
 {
-    return current_quoted;
+    return in_double_quote;
 }
 int quote_expansion ()
 {
-    return current_quoted;
+    return in_double_quote;
 }
 int treat_num_sign_as_string ()
 {
-    return current_quoted;
+    return in_double_quote;
 }
 
 // int yypeeklex ();
@@ -70,398 +72,6 @@ IDENTIFIER          {LETTER}{ALNUM}*
 %x                  SINGLE_QUOTE_STRING
 %x                  COMMENT
 
-/*
-
-"="                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('=');
-                                    return token;
-                                }
-                                return EQUAL; 
-                            }
-
-"<"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('<');
-                                    return token;
-                                }
-                                return LESS; 
-                            }
-
-">"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('>');
-                                    return token;
-                                }
-                                return GREATER; 
-                            }
-
-">>"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('>'); unput('>');
-                                    return token;
-                                }
-                                return GREATER_DOUBLE; 
-                            }
-
-"<&"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('&'); unput('<');
-                                    return token;
-                                }
-                                return LESS_AND; 
-                            }
-
-">&"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('&'); unput('>');
-                                    return token;
-                                }
-                                return GREATER_AND; 
-                            }
-
-"&>"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('>'); unput('&');
-                                    return token;
-                                }
-                                return AND_GREATER; 
-                            }
-
-"&>>"                       { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('>'); unput('>'); unput('&');
-                                    return token;
-                                }
-                                return AND_GREATER_DOUBLE; 
-                            }
-
-"<>"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('>'); unput('<');
-                                    return token;
-                                }
-                                return LESS_GREATER; 
-                            }
-
-"!"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('!');
-                                    return token;
-                                }
-                                return BANG; 
-                            }
-
-"|"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('|');
-                                    return token;
-                                }
-                                return OR; 
-                            }
-
-"&"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('&');
-                                    return token;
-                                }
-                                return AND; 
-                            }
-
-"||"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('|'); unput('|');
-                                    return token;
-                                }
-                                return OR_DOUBLE; 
-                            }
-
-"&&"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('&'); unput('&');
-                                    return token;
-                                }
-                                return AND_DOUBLE; 
-                            }
-
-"+"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('+');
-                                    return token;
-                                }
-                                return PLUS; 
-                            }
-
-"-"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('-');
-                                    return token;
-                                }
-                                return MINUS; 
-                            }
-
-"*"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('*');
-                                    return token;
-                                }
-                                return TIMES; 
-                            }
-
-"/"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('/');
-                                    return token;
-                                }
-                                return DIVIDE; 
-                            }
-
-"(("                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('('); unput('(');
-                                    return token;
-                                }
-                                return ROUND_LPAREN_DOUBLE; 
-                            }
-
-"))"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput(')'); unput(')');
-                                    return token;
-                                }
-                                return ROUND_RPAREN_DOUBLE; 
-                            }
-
-"[["                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('['); unput('[');
-                                    return token;
-                                }
-                                return SQUARE_LPAREN_DOUBLE; 
-                            }
-
-"]]"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput(']'); unput(']');
-                                    return token;
-                                }
-                                return SQUARE_RPAREN_DOUBLE; 
-                            }
-
-"("                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('(');
-                                    return token;
-                                }
-                                return ROUND_LPAREN; 
-                            }
-
-")"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput(')');
-                                    return token;
-                                }
-                                return ROUND_RPAREN; 
-                            }
-
-"["                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('[');
-                                    return token;
-                                }
-                                return SQUARE_LPAREN; 
-                            }
-
-"]"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput(']');
-                                    return token;
-                                }
-                                return SQUARE_RPAREN; 
-                            }
-
-"{"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('{');
-                                    return token;
-                                }
-                                return CURLY_LPAREN; 
-                            }
-
-"}"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput('}');
-                                    return token;
-                                }
-                                return CURLY_RPAREN; 
-                            }
-
-";;"                        { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput(';'); unput(';');
-                                    return token;
-                                }
-                                return SEMICOLON_DOUBLE; 
-                            }
-
-";"                         { 
-                                if (in_word) {
-                                    int token = finish_word();
-                                    unput(';');
-                                    return token;
-                                }
-                                return SEMICOLON; 
-                            }
-
-"if"                        { 
-                                if (in_word) {
-                                    add_to_word(yytext);
-                                } else {
-                                    return IF;
-                                }
-                            }
-
-"then"                      { 
-                                if (in_word) {
-                                    add_to_word(yytext);
-                                } else {
-                                    return THEN;
-                                }
-                            }
-
-"elif"                      { 
-                                if (in_word) {
-                                    add_to_word(yytext);
-                                } else {
-                                    return ELIF;
-                                }
-                            }
-
-"else"                      { 
-                                if (in_word) {
-                                    add_to_word(yytext);
-                                } else {
-                                    return ELSE;
-                                }
-                            }
-
-"fi"                        { 
-                                if (in_word) {
-                                    add_to_word(yytext);
-                                } else {
-                                    return FI;
-                                }
-                            }
-
-"for"                       { 
-                                if (in_word) {
-                                    add_to_word(yytext);
-                                } else {
-                                    return FOR;
-                                }
-                            }
-
-"in"                        { 
-                                if (in_word) {
-                                    add_to_word(yytext);
-                                } else {
-                                    return IN;
-                                }
-                            }
-
-"do"                        { 
-                                if (in_word) {
-                                    add_to_word(yytext);
-                                } else {
-                                    return DO;
-                                }
-                            }
-
-"done"                      { 
-                                if (in_word) {
-                                    add_to_word(yytext);
-                                } else {
-                                    return DONE;
-                                }
-                            }
-
-"while"                     { 
-                                return WHILE;
-                            }
-
-"until"                     { 
-                                return UNTIL;
-                            }
-
-"case"                      { 
-                                return CASE;
-                            }
-
-"esac"                      { 
-                                return ESAC;
-                            }
-
-"break"                     { 
-                                return BREAK;
-                            }
-
-"continue"                  { 
-                                return CONTINUE;
-                            }
-
-"return"                    { 
-                                return RETURN;
-                            }
-
-"exit"                      { 
-                                return EXIT;
-                            }
-
-"exec"                      { 
-                                return EXEC;
-                            }
-
-"trap"                      { 
-                                return TRAP;
-                            }
-
-"time"                      { 
-                                return TIME;
-                            }
-
-"coproc"                    { 
-                            }
-*/
-
 %%
 
 \${IDENTIFIER}          {
@@ -476,7 +86,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
                                 content = __add_escape_character_except_space (content);
                                 yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
                             }
-                            return STRING;
+                            return STRING_LIST;
                         }
 
 \$\{([^\\}]|\\.)*\}     {
@@ -492,23 +102,23 @@ IDENTIFIER          {LETTER}{ALNUM}*
                                 content = __add_escape_character_except_space (content);
                                 yylval->str_frag = make_string_fragment (STR_FRAG_NON_QUOTED, content);
                             }
-                            return STRING;
+                            return STRING_LIST;
                         }
 
 <DOUBLE_QUOTE_STRING>{
     ([^ \t\r\n\"]|\\.|\\[ ])+   {
                             yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
                                                                     new_string_2 (yytext));
-                            return STRING;
+                            return STRING_LIST;
                         }
     \n                  {
                             ++yylineno;
                             yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
                                                                     new_string_2 (yytext));
-                            return STRING;
+                            return STRING_LIST;
                         }
     \"                  {
-                            current_quoted = 0;
+                            in_double_quote = 0;
                             yy_pop_state ();
                             return DOUBLE_QUOTE;
                         }
@@ -520,12 +130,12 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             }
                             string content = new_string_2 (yytext);
                             yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
-                            return STRING;
+                            return STRING_LIST;
                         }
 }
 \"                      {
                             DEBUG_PRINT ("debug: enter double quoted mode\n");
-                            current_quoted = 1;
+                            in_double_quote = 1;
                             yy_push_state (DOUBLE_QUOTE_STRING);
                             string_list *list = interpret_string (TOK_NIL, SIM_STR_INT_DOUBLE_QUOTE);
                             string content;
@@ -540,7 +150,25 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             DEBUG_PRINT ("debug: `%s`\n", content);
                             yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
                             free_string_list (list);
-                            return STRING;
+                            return STRING_LIST;
+                        }
+
+<SINGLE_QUOTE_STRING>{
+    \'                  {
+                            yy_pop_state ();
+                            single_quote_str_buf = __add_escape_character_all (single_quote_str_buf);
+                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, single_quote_str_buf);
+                            single_quote_str_buf = NULL;
+                            return STRING_LIST;
+                        }
+    [^\']+              {
+                            single_quote_str_buf = string_append_back (single_quote_str_buf, yytext);
+                        }
+}
+\'                      {
+                            in_single_quote = 1;
+                            yy_push_state (SINGLE_QUOTE_STRING);
+                            single_quote_str_buf = new_string ();
                         }
 
 {WHITESPACE}+ {
@@ -549,7 +177,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
         string content = new_string_2 (yytext);
         yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
                                                 content);
-        return STRING;
+        return STRING_LIST;
     }
     return WHITESPACE;
 }
@@ -560,7 +188,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
         string content = new_string_2 (yytext);
         yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED,
                                                 content);
-        return STRING;
+        return STRING_LIST;
     }
     yylval->str = new_string_2(yytext);
     return IDENTIFIER_ASSIGNMENT;
@@ -581,7 +209,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             {
                                 string content = new_string_2 (yytext);
                                 yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
-                                return STRING;
+                                return STRING_LIST;
                             }
                             else {
                                 // enter comment state
@@ -594,39 +222,13 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             DEBUG_ASSERT (strlen(yytext) == 2);
                             string content = new_string_2 (yytext + 1);
                             yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, content);
-                            return STRING;
+                            return STRING_LIST;
                         }
 
-<SINGLE_QUOTE_STRING>{
-    \'                  {
-                            yy_pop_state ();
-                            single_quote_string_buf = __add_escape_character_all (single_quote_string_buf);
-                            yylval->str_frag = make_string_fragment (STR_FRAG_QUOTED, single_quote_string_buf);
-                            single_quote_string_buf = NULL;
-                            return STRING;
-                        }
-    ([^\'])*            {
-                            single_quote_string_buf = string_append_back (single_quote_string_buf, yytext);
-                        }
-    <<EOF>>             {
-                            fprintf (stderr, "Yar: Unexpected end of file, single quote string do not end!\n");
-                            return 0;
-                        }
-}
-\'                      {
-                            yy_push_state (SINGLE_QUOTE_STRING);
-                            single_quote_string_buf = new_string ();
-                        }
-\'\'            {
-                            string content = new_substr (yytext + 1, yytext + strlen(yytext) - 1);
-                            content = __add_escape_character_all (content);
-                            yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED, content);
-                            return STRING;
-                        }
 ([^ \=\#\t\r\n\"\'()<>&|$;]|\\.|\\[ ])+     {
                                     yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED,
                                                             new_string_2(yytext) );
-                                    return STRING;
+                                    return STRING_LIST;
                                 }
 
 \n          {
@@ -678,7 +280,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             fprintf (stderr, "Unexpected character: %c\n", yytext[0]);
                         }
 <<EOF>>                 {
-                            DEBUG_PRINT ("flex: debug: exit with state (%d)\n", YY_START);
+                            // DEBUG_PRINT ("flex: debug: exit with state (%d)\n", YY_START);
                             if (comment_mode)
                             {
                                 // skip all the   # ..... <<EOF>>
@@ -688,7 +290,11 @@ IDENTIFIER          {LETTER}{ALNUM}*
                                 yy_pop_state ();
                                 return NEWLINE;
                             }
-                            else if (current_quoted)
+                            else if (in_double_quote)
+                            {
+
+                            }
+                            else if (in_single_quote)
                             {
 
                             }
@@ -701,50 +307,50 @@ IDENTIFIER          {LETTER}{ALNUM}*
 
 %%
 
-string __add_escape_character_all (string input)
+string __add_escape_character_all (string str)
 {
     string res = new_string ();
-    size_t len = string_length (input);
+    size_t len = string_length (str);
     for (size_t i = 0; i < len; ++i)
     {
         res = string_push_back (res, '\\');
-        if (input[i] == '\\')
+        if (str[i] == '\\')
         {
             ++i;
         }
         if (i < len) {
-            res = string_push_back (res, input[i]);
+            res = string_push_back (res, str[i]);
         }
     }
-    free_string (input);
+    free_string (str);
     return res;
 }
-string __add_escape_character_except (string input, const char *delim)
+string __add_escape_character_except (string str, const char *delim)
 {
     string res = new_string ();
-    size_t len = string_length (input);
+    size_t len = string_length (str);
     for (size_t i = 0; i < len; ++i)
     {
-        if (strchr (delim, input[i])) {
-            res = string_push_back (res, input[i]);
+        if (strchr (delim, str[i])) {
+            res = string_push_back (res, str[i]);
             continue;
         }
         res = string_push_back (res, '\\');
-        if (input[i] == '\\')
+        if (str[i] == '\\')
         {
             ++i;
         }
         if (i < len) {
-            res = string_push_back (res, input[i]);
+            res = string_push_back (res, str[i]);
         }
     }
-    free_string (input);
+    free_string (str);
     return res;
 }
 
-string __add_escape_character_except_space (string input)
+string __add_escape_character_except_space (string str)
 {
-    return __add_escape_character_except (input, " \t\r");
+    return __add_escape_character_except (str, " \t\r");
 }
 
 // void free_metadata (int token, YYSTYPE *val)

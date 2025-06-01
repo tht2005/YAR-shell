@@ -1,8 +1,12 @@
+#include "builtin_commands/builtin_commands.h"
+#include "data_structure/string.h"
+#include "yar_ast.h"
 #include "yar_env.h"
 #include "yar_exec.h"
 #include "yar_job.h"
 #include "yar_shell.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -51,15 +55,7 @@ void launch_process (process *p, pid_t pgid, int foreground) {
     }
 
     // init environment
-    int i;
-    for (i = 0; i < (p->cnt_assignment); ++i) {
-        if (putenv ( strdup(p->argv[i])) ) {
-            perror ("putenv");
-            exit (1);
-        } 
-    }
-    
-    execvp (p->argv[i], &(p->argv[i]));
+    execvp (* p->argv, p->argv);
     perror ("execvp");
     exit (1);
 }
@@ -67,18 +63,6 @@ void launch_process (process *p, pid_t pgid, int foreground) {
 void launch_job (job *j, int foreground) {
 
     // assignment case
-    if (__cnt_processes (j) == 1
-            && j->first_process->cnt_assignment == j->first_process->argc) {
-
-        process *p = j->first_process;
-        for (int i = 0; i < (p->cnt_assignment); ++i) {
-            if (putenv ( strdup(p->argv[i]) )) {
-                perror ("putenv");
-                exit (1);
-            } 
-        }
-        return;
-    }
 
     process *p;
     pid_t pid;
@@ -138,5 +122,75 @@ void launch_job (job *j, int foreground) {
     else
         put_job_in_background (j, 0);
 
+}
+
+void __ast_execute_command (command *command)
+{
+    int argc = 0;
+    for (argument_list *ptr = command->arguments_and_redirections; ptr; ptr = ptr->next)
+    {
+        switch (ptr->type)
+        {
+            case AL_ARGUMENT:
+                ++argc;
+                break;
+            case AL_REDIRECTION:
+                fprintf (stderr, "Yar: not support file redirection yet! (skip)\n");
+                break;
+            default:
+                assert (0);
+                break;
+        }
+    }
+
+    string *argv = (string *) malloc ((argc + 1) * sizeof (string *));
+    if (argv == NULL)
+    {
+        perror ("Yar: malloc");
+        exit (1);
+    }
+    argc = 0;
+    for (argument_list *ptr = command->arguments_and_redirections; ptr; ptr = ptr->next)
+    {
+        if (ptr->type == AL_ARGUMENT)
+        {
+            argv[argc++] = new_string_2(ptr->arg);
+        }
+    }
+    argv[argc] = NULL;
+
+    if (argc == 0) {
+        fprintf (stderr, "Yar: may bug: __ast_execute_command: argc = 0\n");
+        for (int i = 0; i < argc; ++i) {
+            free_string (argv[i]);
+        }
+        free (argv);
+        return;
+    }
+
+    int status = exec_builtin (argc, argv);
+    if (status != COMMAND_NOT_FOUND)
+    {
+        fprintf (stderr, "Yar: debug: execute builtin command `%s`\n", argv[0]);
+        for (int i = 0; i < argc; ++i) {
+            free_string (argv[i]);
+        }
+        free (argv);
+        return;
+    }
+
+    fprintf (stderr, "Yar: debug: execute host command `%s`\n", argv[0]);
+
+    process *p = new_process();
+    p->argc = argc;
+    p->argv = argv;
+
+    job *j = new_job();
+    j->first_process = p;
+
+    launch_job (j, 1);
+
+    free_job (j);
+    // argv already be freed
 }
 

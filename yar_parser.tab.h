@@ -47,10 +47,12 @@ extern int yydebug;
 /* "%code requires" blocks.  */
 #line 5 "yar_parser.y"
 
-    #include "yar_ast.h"
-    #include "data_structure/string.h"
+#include "yar_ast.h"
+#include "data_structure/string.h"
 
-#line 54 "yar_parser.tab.h"
+extern command *command_result;
+
+#line 56 "yar_parser.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -73,30 +75,31 @@ extern int yydebug;
     PREFIX_SUBSTITUTION_ARITHMETIC = 267, /* PREFIX_SUBSTITUTION_ARITHMETIC  */
     IDENTIFIER_ASSIGNMENT = 268,   /* IDENTIFIER_ASSIGNMENT  */
     STRING = 269,                  /* STRING  */
-    SEMICOLON = 270,               /* SEMICOLON  */
-    SEMICOLON_DOUBLE = 271,        /* SEMICOLON_DOUBLE  */
-    NEWLINE = 272,                 /* NEWLINE  */
-    LESS = 273,                    /* LESS  */
-    GREATER = 274,                 /* GREATER  */
-    GREATER_DOUBLE = 275,          /* GREATER_DOUBLE  */
-    AND_GREATER = 276,             /* AND_GREATER  */
-    GREATER_AND = 277,             /* GREATER_AND  */
-    AND_GREATER_DOUBLE = 278,      /* AND_GREATER_DOUBLE  */
-    LESS_AND = 279,                /* LESS_AND  */
-    NUM_LESS = 280,                /* NUM_LESS  */
-    NUM_GREATER = 281,             /* NUM_GREATER  */
-    NUM_LESS_AND = 282,            /* NUM_LESS_AND  */
-    NUM_GREATER_AND = 283,         /* NUM_GREATER_AND  */
-    PLUS = 284,                    /* PLUS  */
-    MINUS = 285,                   /* MINUS  */
-    TIMES = 286,                   /* TIMES  */
-    DIVIDE = 287,                  /* DIVIDE  */
-    BRACE_LEFT = 288,              /* BRACE_LEFT  */
-    BRACE_RIGHT = 289,             /* BRACE_RIGHT  */
-    CODEBLOCK_BEGIN = 290,         /* CODEBLOCK_BEGIN  */
-    CODEBLOCK_END = 291,           /* CODEBLOCK_END  */
-    DOUBLE_QUOTE = 292,            /* DOUBLE_QUOTE  */
-    WHITESPACE = 293               /* WHITESPACE  */
+    STRING_LIST = 270,             /* STRING_LIST  */
+    SEMICOLON = 271,               /* SEMICOLON  */
+    SEMICOLON_DOUBLE = 272,        /* SEMICOLON_DOUBLE  */
+    NEWLINE = 273,                 /* NEWLINE  */
+    LESS = 274,                    /* LESS  */
+    GREATER = 275,                 /* GREATER  */
+    GREATER_DOUBLE = 276,          /* GREATER_DOUBLE  */
+    AND_GREATER = 277,             /* AND_GREATER  */
+    GREATER_AND = 278,             /* GREATER_AND  */
+    AND_GREATER_DOUBLE = 279,      /* AND_GREATER_DOUBLE  */
+    LESS_AND = 280,                /* LESS_AND  */
+    NUM_LESS = 281,                /* NUM_LESS  */
+    NUM_GREATER = 282,             /* NUM_GREATER  */
+    NUM_LESS_AND = 283,            /* NUM_LESS_AND  */
+    NUM_GREATER_AND = 284,         /* NUM_GREATER_AND  */
+    PLUS = 285,                    /* PLUS  */
+    MINUS = 286,                   /* MINUS  */
+    TIMES = 287,                   /* TIMES  */
+    DIVIDE = 288,                  /* DIVIDE  */
+    BRACE_LEFT = 289,              /* BRACE_LEFT  */
+    BRACE_RIGHT = 290,             /* BRACE_RIGHT  */
+    CODEBLOCK_BEGIN = 291,         /* CODEBLOCK_BEGIN  */
+    CODEBLOCK_END = 292,           /* CODEBLOCK_END  */
+    DOUBLE_QUOTE = 293,            /* DOUBLE_QUOTE  */
+    WHITESPACE = 294               /* WHITESPACE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -105,16 +108,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 20 "yar_parser.y"
+#line 25 "yar_parser.y"
 
     string str;
     string_fragment str_frag;
     redirection redirection;
-    struct {
-        string_fragment_list *head, *tail;
-    } fragment_list;
+    string_list *str_list;
+    argument_list *argument_list;
+    command *command;
 
-#line 118 "yar_parser.tab.h"
+#line 121 "yar_parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

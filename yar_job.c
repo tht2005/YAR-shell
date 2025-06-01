@@ -16,6 +16,37 @@
 
 job *first_job = NULL;
 
+process *new_process ()
+{
+    process *p = (process *) malloc (sizeof (process));
+    if (p == NULL) {
+        perror ("Yar: malloc");
+        exit (1);
+    }
+    p->next = NULL;
+    p->environment = NULL;
+    p->argc = 0;
+    p->argv = NULL;
+    return p;
+}
+job *new_job ()
+{
+    job *j = (job *) malloc (sizeof (job));
+    if (j == NULL) {
+        perror ("Yar: malloc");
+        exit (1);
+    }
+    j->next = NULL;
+    j->command = NULL;
+    j->first_process = NULL;
+    j->pgid = 0;
+    j->notified = 0;
+    tcgetattr (shell_terminal, &j->tmodes);
+    j->stdin = STDIN_FILENO;
+    j->stdout = STDOUT_FILENO;
+    j->stderr = STDERR_FILENO;
+    return j;
+}
 void free_process (process *p) {
     for (string *ptr = p->argv; *ptr; ++ptr)
         free_string (*ptr);

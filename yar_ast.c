@@ -1,6 +1,7 @@
 #include "yar_ast.h"
 
 #include "data_structure/string.h"
+#include "yar_debug.h"
 
 string_fragment make_string_fragment (int type, string value)
 {
@@ -39,6 +40,10 @@ redirection make_redirection (int type, string file)
   ret.file = file;
   return ret;
 }
+void free_redirection (redirection redirection)
+{
+  free_string (redirection.file);
+}
 
 string_list *new_string_list (string str)
 {
@@ -62,6 +67,13 @@ void free_string_list (string_list *ptr)
     ptr = nxt;
   }
 }
+size_t string_list_count (string_list *list)
+{
+  size_t res = 0;
+  for(; list; list = list->next)
+    ++res;
+  return res;
+}
 string string_list_retrieve_string (string_list *list)
 {
   string res = new_string();
@@ -74,6 +86,18 @@ string string_list_retrieve_string (string_list *list)
     }
   }
   return res;
+}
+void string_list_push_back (string_list **head, string_list **tail, string *str)
+{
+    string_list *elem = new_string_list (*str);
+    if (*head) {
+        (*tail)->next = elem;
+        (*tail) = elem;
+    }
+    else {
+        (*head) = (*tail) = elem;
+    }
+    *str = NULL;
 }
 
 // string_fragment_list_chain *new_string_fragment_list_chain (string_fragment_list *list)
@@ -99,19 +123,6 @@ string string_list_retrieve_string (string_list *list)
 //   }
 // }
 
-void string_list_push_back (string_list **head, string_list **tail, string *str)
-{
-    string_list *elem = new_string_list (*str);
-    if (*head) {
-        (*tail)->next = elem;
-        (*tail) = elem;
-    }
-    else {
-        (*head) = (*tail) = elem;
-    }
-    *str = NULL;
-}
-
 void string_fragment_list_push_back (string_fragment_list **head, string_fragment_list **tail, string_fragment *frag)
 {
     string_fragment_list *tmp = new_string_fragment_list (*frag);
@@ -136,3 +147,54 @@ void string_fragment_list_push_back (string_fragment_list **head, string_fragmen
 //     }
 // }
 
+argument_list *new_argument_list ()
+{
+  argument_list *list = (argument_list *) malloc (sizeof (argument_list));
+  if (list == NULL) {
+    perror ("Yar: malloc");
+    exit (1);
+  }
+  list->next = NULL;
+  return list;
+}
+void free_argument_list (argument_list *list)
+{
+  argument_list *tmp;
+  while (list)
+  {
+    switch (list->type)
+    {
+      case AL_ARGUMENT:
+        free_string (list->arg);
+        break;
+      case AL_REDIRECTION:
+        free_redirection (list->redirection);
+        break;
+      default:
+        assert (0);
+    }
+
+    tmp = list->next;
+    free (list);
+    list = tmp;
+  }
+}
+
+command *new_command (string_list *assignments, argument_list *arguments_and_redirections)
+{
+  command *cmd = (command *) malloc (sizeof (command));
+  if (cmd == NULL) {
+    perror ("Yar: malloc");
+    exit (1);
+  }
+  cmd->assignments = assignments;
+  cmd->arguments_and_redirections = arguments_and_redirections;
+  DEBUG_PRINT("new_command: %p %p %p\n", cmd, cmd->assignments, cmd->arguments_and_redirections);
+  return cmd;
+}
+void free_command (command *command)
+{
+  free_string_list (command->assignments);
+  free_argument_list (command->arguments_and_redirections);
+  free (command);
+}
