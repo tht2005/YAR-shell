@@ -86,6 +86,9 @@ char *strtok_r_respect_escape (char *restrict s, const char *restrict delim, cha
     {
         ++s;
     }
+    if (*s == '\0') {
+        return NULL;
+    }
     *save_ptr = s;
     while (1) {
         if (**save_ptr == '\0') {
