@@ -27,7 +27,6 @@ int pwd_main(int argc, char **argv)
             return 0;
         }
     }
-
     char *pwd = getcwd(NULL, 0);
     printf ("%s\n", pwd);
     fflush (stdout);

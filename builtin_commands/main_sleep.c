@@ -17,7 +17,6 @@ void sleep_post ()
     // giai phong bo nho?
 }
 
-
 double parse_duration(const char *arg) {
     char *end;
     double value = strtod(arg, &end);
