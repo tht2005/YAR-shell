@@ -28,9 +28,10 @@ int pwd_main(int argc, char **argv)
         }
     }
 
-    char *pwd = getenv ("PWD");
+    char *pwd = getcwd(NULL, 0);
     printf ("%s\n", pwd);
     fflush (stdout);
+    free(pwd);
     return 0;
 }
 

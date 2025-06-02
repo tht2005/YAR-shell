@@ -41,14 +41,14 @@ int ls_main(int argc, char **argv)
         return 0;
     }
     char *dir, *oldpwd = getenv("PWD");
-    string can = new_string();
+    string can = new_string(), canfile = new_string();
     for (int i = 1; i < argc; i++) {
         string des = new_string();
         int idx = 0;
         if (argv[i][0] == '~') {
             char *home = getenv("HOME");
             if (home == NULL) {
-                printf("ls: cannot access %s: ROOT environment variable not set\n", argv[i]);
+                printf("ls: cannot access %s: Home environment variable not set\n", argv[i]);
                 free_string(des);
                 continue;
             }
@@ -77,7 +77,20 @@ int ls_main(int argc, char **argv)
 
         DIR *cdir = opendir(dir);
         if (cdir == NULL) {
-            printf("ls: cannot access '%s': %s\n", argv[i], strerror(errno));
+            if (strcmp(strerror(errno), "Not a directory") == 0) {
+                if (is_any_whitespace(argv[i])) {
+                    canfile = string_append_back(canfile, "'");
+                    canfile = string_append_back(canfile, argv[i]);
+                    canfile = string_append_back(canfile, "'");
+                }
+                else {
+                    canfile = string_append_back(canfile, argv[i]);
+                }
+                canfile = string_append_back(canfile, "\n");
+            }
+            else {
+                printf("ls: cannot access '%s': %s\n", argv[i], strerror(errno));
+            }
             free(dir);
             free_string(des);
             continue;
@@ -98,9 +111,9 @@ int ls_main(int argc, char **argv)
             else {
                 can = string_append_back(can, entry->d_name);
             }
-            can = string_append_back(can, "    ");
+            can = string_append_back(can, "\n");
         }
-        can = string_append_back(can, "\n\n");
+        can = string_append_back(can, "\n");
 
         free(dir);
         free_string(des);
@@ -111,7 +124,7 @@ int ls_main(int argc, char **argv)
 
         DIR *cdir = opendir(dir);
         if (cdir == NULL) {
-            printf("ls: cannot access '%s': %s\n", dir, strerror(errno));
+            printf("ls: cannot access '%s': %s\n\n", dir, strerror(errno));
         }
         else {
             struct dirent *entry;
@@ -125,14 +138,15 @@ int ls_main(int argc, char **argv)
                 else {
                     can = string_append_back(can, entry->d_name);
                 }
-                can = string_append_back(can, "    ");
+                can = string_append_back(can, "\n");
             }
             can = string_append_back(can, "\n\n");
         }
     }
 
-    printf("%s", can);
+    printf("%s\n%s", canfile, can);
     free_string(can);
+    free_string(canfile);
     fflush (stdout);
     return 0;
 }

@@ -90,6 +90,10 @@ int cd_main(int argc, char **argv)
 
             setenv("OLDPWD", oldpwd, 1);
             setenv("PWD", dir, 1);
+            if (chdir(dir) < 0) {
+                //printf("cd: %s: Error changing directory: %s\n", argv[1], perror(cd));
+                perror("cd");
+            }
 
             free(dir);
             free_string(des);
@@ -99,6 +103,10 @@ int cd_main(int argc, char **argv)
 
     setenv("OLDPWD", oldpwd, 1);
     setenv("PWD", dir, 1);
+    if (chdir(dir) < 0) {
+        //printf("cd: %s: Error changing directory: %s\n", argv[1], perror(cd));
+        perror("cd");
+    }
 
     fflush (stdout);
     return 0;
