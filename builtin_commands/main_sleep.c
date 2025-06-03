@@ -82,6 +82,6 @@ int sleep_main(int argc, char **argv)
 __attribute__((constructor))
 static void __sleep_register (void)
 {
-    builtin_command_register("sleep", sleep_main, sleep_pre, sleep_post);
+    //builtin_command_register("sleep", sleep_main, sleep_pre, sleep_post);
 }
 

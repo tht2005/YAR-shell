@@ -123,18 +123,6 @@ process *__ast_build_process (command *command)
     }
     argv[argc] = NULL;
 
-    if (argc == 0) {
-        fprintf (stderr, "Yar: may bug: __ast_build_command: argc = 0\n");
-        for (int i = 0; i < argc; ++i) {
-            free_string (argv[i]);
-        }
-        free (argv);
-        if (__stdin != STDIN_FILENO) close (__stdin);
-        if (__stdout != STDOUT_FILENO) close (__stdout);
-        if (__stderr != STDERR_FILENO) close (__stderr);
-        return NULL;
-    }
-
     size_t count = string_list_count (command->assignments);
     string *environ = (string *) malloc ((count + 1) * sizeof (string));
     if (environ == NULL) {
@@ -145,6 +133,7 @@ process *__ast_build_process (command *command)
     for (string_list *ptr = command->assignments; ptr; ptr = ptr->next)
         environ[count++] = new_string_2 (ptr->str);
     environ[count] = NULL;
+
     p->environ = environ;
     p->argc = argc;
     p->argv = argv;
@@ -157,109 +146,45 @@ process *__ast_build_process (command *command)
     return p;
 }
 
-// fix this as an built-in command exec
-void __ast_execute_command (command *command)
+void launch_builtin (job *j)
 {
-    int __stdin = STDIN_FILENO, __stdout = STDOUT_FILENO, __stderr = STDERR_FILENO;
-    int argc = 0;
-    for (argument_list *ptr = command->arguments_and_redirections; ptr; ptr = ptr->next)
+    int saved_stdin = __dup_wrapper (STDIN_FILENO);
+    int saved_stdout = __dup_wrapper (STDOUT_FILENO);
+    int saved_stderr = __dup_wrapper (STDERR_FILENO);
+
+    int __stdin = j->stdin;
+    int __stdout = j->stdout;
+    int __stderr = j->stderr;
+
+    if (__stdin != STDIN_FILENO && __stdin >= 0)
     {
-        switch (ptr->type)
-        {
-            case AL_ARGUMENT:
-                ++argc;
-                break;
-            case AL_REDIRECTION:
-                __do_redirect (ptr->redirection.type, ptr->redirection.file, &__stdin, &__stdout, &__stderr);
-                break;
-            default:
-                assert (0);
-                break;
-        }
+        __dup2_wrapper (__stdin, STDIN_FILENO);
     }
-
-    string *argv = (string *) malloc ((argc + 1) * sizeof (string *));
-    if (argv == NULL)
+    if (__stdout != STDOUT_FILENO && __stdout >= 0)
     {
-        perror ("Yar: malloc");
-        exit (1);
+        __dup2_wrapper (__stdout, STDOUT_FILENO);
     }
-    argc = 0;
-    for (argument_list *ptr = command->arguments_and_redirections; ptr; ptr = ptr->next)
+    if (__stderr != STDERR_FILENO && __stderr >= 0)
     {
-        if (ptr->type == AL_ARGUMENT)
-        {
-            argv[argc++] = new_string_2(ptr->arg);
-        }
-    }
-    argv[argc] = NULL;
-
-    if (argc == 0) {
-        fprintf (stderr, "Yar: may bug: __ast_execute_command: argc = 0\n");
-        for (int i = 0; i < argc; ++i) {
-            free_string (argv[i]);
-        }
-        free (argv);
-        return;
+        __dup2_wrapper (__stderr, STDERR_FILENO);
     }
 
-    {
-        int saved_stdin = __dup_wrapper (STDIN_FILENO);
-        int saved_stdout = __dup_wrapper (STDOUT_FILENO);
-        int saved_stderr = __dup_wrapper (STDERR_FILENO);
-        if (__stdin != STDIN_FILENO && __stdin >= 0)
-        {
-            __dup2_wrapper (__stdin, STDIN_FILENO);
-        }
-        if (__stdout != STDOUT_FILENO && __stdout >= 0)
-        {
-            __dup2_wrapper (__stdout, STDOUT_FILENO);
-        }
-        if (__stderr != STDERR_FILENO && __stderr >= 0)
-        {
-            __dup2_wrapper (__stderr, STDERR_FILENO);
-        }
+    int status = exec_builtin (j->first_process->argc, j->first_process->argv);
 
-        int status = exec_builtin (argc, argv);
+    __dup2_wrapper (saved_stdin, STDIN_FILENO);
+    __dup2_wrapper (saved_stdout, STDOUT_FILENO);
+    __dup2_wrapper (saved_stderr, STDERR_FILENO);
 
-        __dup2_wrapper (saved_stdin, STDIN_FILENO);
-        __dup2_wrapper (saved_stdout, STDOUT_FILENO);
-        __dup2_wrapper (saved_stderr, STDERR_FILENO);
+    close (saved_stdin);
+    close (saved_stdout);
+    close (saved_stderr);
 
-        close (saved_stdin);
-        close (saved_stdout);
-        close (saved_stderr);
+    if (__stdin != STDIN_FILENO) close (__stdin);
+    if (__stdout != STDOUT_FILENO) close (__stdout);
+    if (__stderr != STDERR_FILENO) close (__stderr);
 
-        if (__stdin != STDIN_FILENO) close (__stdin);
-        if (__stdout != STDOUT_FILENO) close (__stdout);
-        if (__stderr != STDERR_FILENO) close (__stderr);
-
-        if (status != COMMAND_NOT_FOUND)
-        {
-            fprintf (stderr, "Yar: debug: execute builtin command `%s`\n", argv[0]);
-            for (int i = 0; i < argc; ++i) {
-                free_string (argv[i]);
-            }
-            free (argv);
-            return;
-        }
+    if (status == COMMAND_NOT_FOUND) {
+        fprintf (stderr, "Yar: bug: exec_builtin: is not a builtin command");
     }
-
-    fprintf (stderr, "Yar: debug: execute host command `%s`\n", argv[0]);
-
-    process *p = new_process();
-    p->argc = argc;
-    p->argv = argv;
-
-    job *j = new_job();
-    j->first_process = p;
-    j->stdin = __stdin;
-    j->stdout = __stdout;
-    j->stderr = __stderr;
-
-    // launch_job (j, 1);
-
-    free_job (j);
-    // argv already be freed
 }
 

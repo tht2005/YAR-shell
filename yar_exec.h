@@ -7,5 +7,6 @@
 void launch_process (process *p, pid_t pgid, int foreground);
 void launch_job (job *j);
 process *__ast_build_process (command *command);
+void launch_builtin (job *j);
 
 #endif

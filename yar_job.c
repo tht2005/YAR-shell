@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <errno.h>
@@ -31,6 +32,7 @@ process *new_process ()
     p->argc = 0;
     p->argv = NULL;
     p->stdin = p->stdout = p->stderr = -1;
+    p->stopped = p->completed = 0;
     return p;
 }
 job *new_job ()
@@ -75,9 +77,6 @@ void launch_process (process *p, pid_t pgid, int foreground) {
     pid_t pid;
 
     if (shell_is_interactive) {
-        pid = getpid ();
-        if (pgid == 0) pgid = pid;
-        setpgid (pid, pgid);
         if (foreground)
             tcsetpgrp (shell_terminal, pgid);
 
@@ -170,9 +169,24 @@ void launch_job (job *j) {
             outfile = j->stdout;
         }
 
+        if (shell_is_interactive && pipe (syncpipe) < 0) {
+            perror ("sync pipe");
+            exit (1);
+        }
+
         pid = fork ();
 
         if (pid == 0) {
+            if (shell_is_interactive) {
+                char sync_byte;
+                close (syncpipe[1]);
+                if (read (syncpipe[0], &sync_byte, 1) != 1) {
+                    perror ("sync read");
+                    exit (1);
+                }
+                close (syncpipe[0]);
+            }
+
             if (p->stdin == -1)
                 p->stdin = infile;
             if (p->stdout == -1)
@@ -191,6 +205,13 @@ void launch_job (job *j) {
                 if (!j->pgid)
                     j->pgid = pid;
                 setpgid (pid, j->pgid);
+
+                close (syncpipe[0]);
+                char sync_byte = 1;
+                if (write(syncpipe[1], &sync_byte, 1) != 1) {
+                    perror ("sync write");
+                }
+                close (syncpipe[1]);
             }
         }
 
@@ -205,6 +226,9 @@ void launch_job (job *j) {
     j->command = build_command (j);
     j->next = first_job;
     first_job = j;
+    if (j->foreground == 0) {
+        fprintf (stderr, "[%d]\n", j->pgid);
+    }
 
     if (!shell_is_interactive)
         wait_for_job (j);
@@ -250,23 +274,20 @@ int mark_process_status (pid_t pid, int status) {
                     p->status = status;
                     if (WIFSTOPPED (status)) {
                         p->stopped = 1;
-                        p->completed = 0;
-                        fprintf (stderr, "stopped!\n");
                     }
-                    else {
-                        p->stopped = 0;
+                    else if (WIFSIGNALED (status) || WIFEXITED (status)) {
                         p->completed = 1;
                         if (WIFSIGNALED (status))
                             fprintf (stderr, "%d: Terminated by signal %d.\n", (int)pid, WTERMSIG (p->status));
-                        fprintf (stderr, "completed!\n");
                     }
                     return 0;
                 }
         fprintf (stderr, "No child process %d.\n", pid);
         return -1;
     }
-    else if (pid == 0 || errno == ECHILD)
+    else if (pid == 0 || errno == ECHILD) {
         return -1;
+    }
     else {
         perror ("waitpid");
         return -1;
@@ -276,16 +297,18 @@ int mark_process_status (pid_t pid, int status) {
 void update_status (void) {
     int status;
     pid_t pid;
-    do
+    do {
         pid = waitpid (WAIT_ANY, &status, WNOHANG | WUNTRACED | WCONTINUED);
+    }
     while (!mark_process_status (pid, status));
 }
 
 void wait_for_job (job *j) {
     int status;
     pid_t pid;
-    do
+    do {
         pid = waitpid (WAIT_ANY, &status, WUNTRACED);
+    }
     while (!mark_process_status (pid, status)
             && !job_is_stopped (j)
             && !job_is_completed (j));
@@ -305,7 +328,9 @@ void do_job_notification (void) {
         jnext = j->next;
 
         if (job_is_completed (j)) {
-            format_job_info (j, "Done");
+            if (j->foreground == 0) {
+                format_job_info (j, "Done");
+            }
             if (jlast)
                 jlast->next = jnext;
             else

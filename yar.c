@@ -2,6 +2,7 @@
 #include "data_structure/string.h"
 #include "yar_env.h"
 #include "yar_interpreter.h"
+#include "yar_job.h"
 #include "yar_shell.h"
 
 #include <string.h>
@@ -85,7 +86,6 @@ string read_multiline_input (const char *prompt)
 }
 
 void run_prompt () {
-    putenv ("HOSTNAME=Gentoo");
 
     char ps[128] = "";
     char *user = getenv("USER");
@@ -94,7 +94,7 @@ void run_prompt () {
     string input;
     while (1) {
         char *cwd = getcwd (NULL, 0);
-        snprintf (ps, 100, "%s@%s %s $ ", user, hostname, cwd);
+        snprintf (ps, 100, "tiny-shell %s> ", cwd);
         free (cwd);
 
         input = read_multiline_input(ps);
@@ -111,6 +111,11 @@ void run_prompt () {
         }
         interpret (input);
         free_string (input);
+
+        if (shell_is_interactive)
+        {
+            do_job_notification();
+        }
     }
 }
 

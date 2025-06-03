@@ -387,7 +387,6 @@ void interpret_job (int token, uint64_t flags, int *saved_token)
     // push eof to make parser finalize
     status = yypush_parse (parser, YYEOF, &yylval);
     yypstate_delete (parser);
-    assert (status == 0);
 }
 
 // parse program_segment
@@ -407,7 +406,6 @@ void interpret(const char *source)
     }
     if (extracted_job)
     {
-        free_job (extracted_job);
         extracted_job = NULL;
     }
 

@@ -477,7 +477,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  11
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  27
+#define YYNRULES  28
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  50
 
@@ -533,9 +533,9 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    88,    88,    92,   107,   113,   120,   124,   135,   141,
-     144,   153,   156,   162,   169,   172,   181,   192,   197,   202,
-     207,   212,   217,   222,   227,   232,   237,   242
+       0,    88,    88,    89,    93,   108,   114,   121,   125,   136,
+     142,   145,   154,   157,   163,   170,   173,   182,   193,   198,
+     203,   208,   213,   218,   223,   228,   233,   238,   243
 };
 #endif
 
@@ -601,11 +601,11 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,    11,     9,     3,     2,     6,     8,
-       1,     0,     0,    14,    11,     5,     0,     4,     0,     0,
-      14,    10,    14,    12,     7,    13,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,    15,    16,    17,
-      19,    21,    22,    23,    24,    25,    18,    20,    26,    27
+       2,     0,     0,     0,    12,    10,     4,     3,     7,     9,
+       1,     0,     0,    15,    12,     6,     0,     5,     0,     0,
+      15,    11,    15,    13,     8,    14,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    16,    17,    18,
+      20,    22,    23,    24,    25,    26,    19,    21,    27,    28
 };
 
 /* YYPGOTO[NTERM-NUM].  */
@@ -657,17 +657,17 @@ static const yytype_int8 yystos[] =
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    47,    48,    48,    49,    50,    51,    51,    52,    52,
-      53,    54,    54,    55,    56,    56,    56,    57,    57,    57,
-      57,    57,    57,    57,    57,    57,    57,    57
+       0,    47,    48,    48,    48,    49,    50,    51,    51,    52,
+      52,    53,    54,    54,    55,    56,    56,    56,    57,    57,
+      57,    57,    57,    57,    57,    57,    57,    57,    57
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     2,     2,     3,     2,     1,     3,     1,     1,
-       3,     0,     2,     3,     0,     2,     2,     3,     3,     3,
-       3,     3,     3,     3,     3,     3,     3,     3
+       0,     2,     0,     2,     2,     3,     2,     1,     3,     1,
+       1,     3,     0,     2,     3,     0,     2,     2,     3,     3,
+       3,     3,     3,     3,     3,     3,     3,     3,     3
 };
 
 
@@ -1503,24 +1503,24 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 2: /* input: PREFIX_JOB job_pipeline  */
-#line 89 "yar_parser.y"
+  case 3: /* input: PREFIX_JOB job_pipeline  */
+#line 90 "yar_parser.y"
                                 {
                                     extracted_job = (yyvsp[0].job);
                                 }
 #line 1512 "yar_parser.tab.c"
     break;
 
-  case 3: /* input: PREFIX_JOB job_background  */
-#line 93 "yar_parser.y"
+  case 4: /* input: PREFIX_JOB job_background  */
+#line 94 "yar_parser.y"
                                 {
                                     extracted_job = (yyvsp[0].job);
                                 }
 #line 1520 "yar_parser.tab.c"
     break;
 
-  case 5: /* job_background: job_pipeline AMPERSAND  */
-#line 114 "yar_parser.y"
+  case 6: /* job_background: job_pipeline AMPERSAND  */
+#line 115 "yar_parser.y"
                                 {
                                     (yyval.job) = (yyvsp[-1].job);
                                     (yyval.job)->foreground = 0;
@@ -1528,16 +1528,16 @@ yyreduce:
 #line 1529 "yar_parser.tab.c"
     break;
 
-  case 6: /* job_pipeline: job_command  */
-#line 121 "yar_parser.y"
+  case 7: /* job_pipeline: job_command  */
+#line 122 "yar_parser.y"
                                 {
                                     (yyval.job) = (yyvsp[0].job);
                                 }
 #line 1537 "yar_parser.tab.c"
     break;
 
-  case 7: /* job_pipeline: job_command PIPE job_pipeline  */
-#line 125 "yar_parser.y"
+  case 8: /* job_pipeline: job_command PIPE job_pipeline  */
+#line 126 "yar_parser.y"
                                 {
                                     process *p = (yyvsp[-2].job)->first_process;
                                     (yyvsp[-2].job)->first_process = NULL;
@@ -1549,8 +1549,8 @@ yyreduce:
 #line 1550 "yar_parser.tab.c"
     break;
 
-  case 8: /* job_command: command  */
-#line 136 "yar_parser.y"
+  case 9: /* job_command: command  */
+#line 137 "yar_parser.y"
                                 {
                                     job *job = new_job ();
                                     job->first_process = (yyvsp[0].process);
@@ -1559,8 +1559,8 @@ yyreduce:
 #line 1560 "yar_parser.tab.c"
     break;
 
-  case 10: /* command: PREFIX_COMMAND assignment_list arguments_and_redirections_list  */
-#line 145 "yar_parser.y"
+  case 11: /* command: PREFIX_COMMAND assignment_list arguments_and_redirections_list  */
+#line 146 "yar_parser.y"
                                                                     {
                                                                         command *command = new_command ((yyvsp[-1].str_list), (yyvsp[0].argument_list));
                                                                         (yyval.process) = __ast_build_process (command);
@@ -1569,16 +1569,16 @@ yyreduce:
 #line 1570 "yar_parser.tab.c"
     break;
 
-  case 11: /* assignment_list: %empty  */
-#line 153 "yar_parser.y"
+  case 12: /* assignment_list: %empty  */
+#line 154 "yar_parser.y"
                                                                     {
                                                                         (yyval.str_list) = NULL;
                                                                     }
 #line 1578 "yar_parser.tab.c"
     break;
 
-  case 12: /* assignment_list: assignment assignment_list  */
-#line 156 "yar_parser.y"
+  case 13: /* assignment_list: assignment assignment_list  */
+#line 157 "yar_parser.y"
                                                                     {
                                                                         string_list *list = new_string_list ((yyvsp[-1].str));
                                                                         list->next = (yyvsp[0].str_list);
@@ -1587,8 +1587,8 @@ yyreduce:
 #line 1588 "yar_parser.tab.c"
     break;
 
-  case 13: /* assignment: PREFIX_ASSIGNMENT IDENTIFIER_ASSIGNMENT STRING  */
-#line 162 "yar_parser.y"
+  case 14: /* assignment: PREFIX_ASSIGNMENT IDENTIFIER_ASSIGNMENT STRING  */
+#line 163 "yar_parser.y"
                                                                     {
                                                                         (yyval.str) = new_string_2 ((yyvsp[-1].str));
                                                                         (yyval.str) = string_append_back ((yyval.str), (yyvsp[0].str));
@@ -1596,16 +1596,16 @@ yyreduce:
 #line 1597 "yar_parser.tab.c"
     break;
 
-  case 14: /* arguments_and_redirections_list: %empty  */
-#line 169 "yar_parser.y"
+  case 15: /* arguments_and_redirections_list: %empty  */
+#line 170 "yar_parser.y"
                                                                                         {
                                                                                             (yyval.argument_list) = NULL;
                                                                                         }
 #line 1605 "yar_parser.tab.c"
     break;
 
-  case 15: /* arguments_and_redirections_list: STRING arguments_and_redirections_list  */
-#line 173 "yar_parser.y"
+  case 16: /* arguments_and_redirections_list: STRING arguments_and_redirections_list  */
+#line 174 "yar_parser.y"
                                                                                         {
                                                                                             argument_list *list = new_argument_list ();
                                                                                             list->type = AL_ARGUMENT;
@@ -1617,8 +1617,8 @@ yyreduce:
 #line 1618 "yar_parser.tab.c"
     break;
 
-  case 16: /* arguments_and_redirections_list: redirection arguments_and_redirections_list  */
-#line 182 "yar_parser.y"
+  case 17: /* arguments_and_redirections_list: redirection arguments_and_redirections_list  */
+#line 183 "yar_parser.y"
                                                                                         {
                                                                                             DEBUG_PRINT("redirection_list: redirection (%d) `%s` append to list\n", (yyvsp[-1].redirection).type, (yyvsp[-1].redirection).file);
                                                                                             argument_list *list = new_argument_list();
@@ -1630,8 +1630,8 @@ yyreduce:
 #line 1631 "yar_parser.tab.c"
     break;
 
-  case 17: /* redirection: PREFIX_REDIRECTION LESS STRING  */
-#line 193 "yar_parser.y"
+  case 18: /* redirection: PREFIX_REDIRECTION LESS STRING  */
+#line 194 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", LESS, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (LESS, (yyvsp[0].str));
@@ -1639,8 +1639,8 @@ yyreduce:
 #line 1640 "yar_parser.tab.c"
     break;
 
-  case 18: /* redirection: PREFIX_REDIRECTION NUM_LESS STRING  */
-#line 198 "yar_parser.y"
+  case 19: /* redirection: PREFIX_REDIRECTION NUM_LESS STRING  */
+#line 199 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (NUM_LESS, (yyvsp[0].str));
@@ -1648,8 +1648,8 @@ yyreduce:
 #line 1649 "yar_parser.tab.c"
     break;
 
-  case 19: /* redirection: PREFIX_REDIRECTION GREATER STRING  */
-#line 203 "yar_parser.y"
+  case 20: /* redirection: PREFIX_REDIRECTION GREATER STRING  */
+#line 204 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (GREATER, (yyvsp[0].str));
@@ -1657,8 +1657,8 @@ yyreduce:
 #line 1658 "yar_parser.tab.c"
     break;
 
-  case 20: /* redirection: PREFIX_REDIRECTION NUM_GREATER STRING  */
-#line 208 "yar_parser.y"
+  case 21: /* redirection: PREFIX_REDIRECTION NUM_GREATER STRING  */
+#line 209 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (NUM_GREATER, (yyvsp[0].str));
@@ -1666,8 +1666,8 @@ yyreduce:
 #line 1667 "yar_parser.tab.c"
     break;
 
-  case 21: /* redirection: PREFIX_REDIRECTION GREATER_DOUBLE STRING  */
-#line 213 "yar_parser.y"
+  case 22: /* redirection: PREFIX_REDIRECTION GREATER_DOUBLE STRING  */
+#line 214 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_DOUBLE, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (GREATER_DOUBLE, (yyvsp[0].str));
@@ -1675,8 +1675,8 @@ yyreduce:
 #line 1676 "yar_parser.tab.c"
     break;
 
-  case 22: /* redirection: PREFIX_REDIRECTION AND_GREATER STRING  */
-#line 218 "yar_parser.y"
+  case 23: /* redirection: PREFIX_REDIRECTION AND_GREATER STRING  */
+#line 219 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (AND_GREATER, (yyvsp[0].str));
@@ -1684,8 +1684,8 @@ yyreduce:
 #line 1685 "yar_parser.tab.c"
     break;
 
-  case 23: /* redirection: PREFIX_REDIRECTION GREATER_AND STRING  */
-#line 223 "yar_parser.y"
+  case 24: /* redirection: PREFIX_REDIRECTION GREATER_AND STRING  */
+#line 224 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", GREATER_AND, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (GREATER_AND, (yyvsp[0].str));
@@ -1693,8 +1693,8 @@ yyreduce:
 #line 1694 "yar_parser.tab.c"
     break;
 
-  case 24: /* redirection: PREFIX_REDIRECTION AND_GREATER_DOUBLE STRING  */
-#line 228 "yar_parser.y"
+  case 25: /* redirection: PREFIX_REDIRECTION AND_GREATER_DOUBLE STRING  */
+#line 229 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", AND_GREATER_DOUBLE, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (AND_GREATER_DOUBLE, (yyvsp[0].str));
@@ -1702,8 +1702,8 @@ yyreduce:
 #line 1703 "yar_parser.tab.c"
     break;
 
-  case 25: /* redirection: PREFIX_REDIRECTION LESS_AND STRING  */
-#line 233 "yar_parser.y"
+  case 26: /* redirection: PREFIX_REDIRECTION LESS_AND STRING  */
+#line 234 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", LESS_AND, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (LESS_AND, (yyvsp[0].str));
@@ -1711,8 +1711,8 @@ yyreduce:
 #line 1712 "yar_parser.tab.c"
     break;
 
-  case 26: /* redirection: PREFIX_REDIRECTION NUM_LESS_AND STRING  */
-#line 238 "yar_parser.y"
+  case 27: /* redirection: PREFIX_REDIRECTION NUM_LESS_AND STRING  */
+#line 239 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_LESS_AND, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (NUM_LESS_AND, (yyvsp[0].str));
@@ -1720,8 +1720,8 @@ yyreduce:
 #line 1721 "yar_parser.tab.c"
     break;
 
-  case 27: /* redirection: PREFIX_REDIRECTION NUM_GREATER_AND STRING  */
-#line 243 "yar_parser.y"
+  case 28: /* redirection: PREFIX_REDIRECTION NUM_GREATER_AND STRING  */
+#line 244 "yar_parser.y"
                                                                     {
                                                                         DEBUG_PRINT("debug: redirection %d `%s`\n", NUM_GREATER_AND, (yyvsp[0].str));
                                                                         (yyval.redirection) = make_redirection (NUM_GREATER_AND, (yyvsp[0].str));
@@ -1967,7 +1967,7 @@ yypushreturn:
 #undef yyvs
 #undef yyvsp
 #undef yystacksize
-#line 259 "yar_parser.y"
+#line 260 "yar_parser.y"
 
 
 void yyerror(const char *s) {

@@ -50,6 +50,7 @@ int job_is_stopped (job *j);
 int job_is_completed (job *j);
 
 void do_job_notification (void);
+int mark_process_status (pid_t pid, int status);
 
 extern job *first_job;
 
