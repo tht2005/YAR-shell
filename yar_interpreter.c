@@ -2,30 +2,26 @@
 
 #include "data_structure/string.h"
 #include "yar_ast.h"
-#include "yar_debug.h"
 #include "yar_exec.h"
+#include "yar_job.h"
 #include "yar_parser.tab.h"
 #include "yar_lexer.h"
+#include "setjmp.h"
 
 #include "libglob/glob.h"
 
+#include <readline/readline.h>
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 
 #define WHITESPACE_CHARACTERS       " \t\r"
 
-YYSTYPE yylval;
+job *extracted_job;
 
-int runtime_error;
-int syntax_error;
-
-int check_argument_or_redirection (int token)
+int check_redirection (int token)
 {
-    switch (token)
-    {
-        case STRING:
-
+    switch (token) {
         case LESS:
         case GREATER:
         case GREATER_DOUBLE:
@@ -38,19 +34,31 @@ int check_argument_or_redirection (int token)
         case NUM_GREATER:
         case NUM_LESS_AND:
         case NUM_GREATER_AND:
-            return 1;
 
+            return 1;
+        
         default:
             return 0;
     }
 }
 
+YYSTYPE yylval;
+
+int runtime_error;
+int syntax_error;
 int token_next ()
 {
     return yylex (&yylval);
 }
-
-int token_skip_whitespace (int token)
+int token_skip_space (int token)
+{
+    while (token == WHITESPACE)
+    {
+        token = token_next ();
+    }
+    return token;
+}
+int token_advance_skip_space (int token)
 {
     while ((token = token_next()) == WHITESPACE)
     {
@@ -58,7 +66,7 @@ int token_skip_whitespace (int token)
     }
     return token;
 }
-int token_skip_whitespace_newline (int token)
+int token_advance_skip_space_newline (int token)
 {
     while ((token = token_next()), token == WHITESPACE || token == NEWLINE)
     {
@@ -127,7 +135,7 @@ string_list *split_word (const char *input)
     return string_list_head;
 }
 
-string_list *interpret_string (int token, uint64_t flags)
+string_list *interpret_string (int token, uint64_t flags, int *saved_token)
 {
     string_fragment_list *string_fragment_head = NULL, *string_fragment_tail = NULL;
     string_fragment str_frag;
@@ -136,13 +144,10 @@ string_list *interpret_string (int token, uint64_t flags)
     // implement later ...
     if (token == TOK_NIL)
     {
-        token = token_skip_whitespace_newline (token);
+        token = token_advance_skip_space_newline (token);
     }
     else {
         assert (token == STRING_LIST); 
-        str_frag = yylval.str_frag;
-        string_fragment_list_push_back (&string_fragment_head, &string_fragment_tail, &str_frag);
-        token = token_next();
     }
 
     // yypstate *parser = yypstate_new ();
@@ -163,6 +168,10 @@ string_list *interpret_string (int token, uint64_t flags)
         else {
             break;
         }
+    }
+
+    if (saved_token) {
+        *saved_token = token;
     }
 
     string_list *string_list_head = NULL, *string_list_tail = NULL;
@@ -252,14 +261,13 @@ string_list *interpret_string (int token, uint64_t flags)
     return result;
 }
 
-command *interpret_command (int token, uint64_t flags)
+void interpret_command (yypstate *parser, int token, uint64_t flags, int *saved_token)
 {
-    yypstate *parser = yypstate_new ();
     int status;
 
     if (token == TOK_NIL)
     {
-        token = token_skip_whitespace_newline (token);
+        token = token_advance_skip_space_newline (token);
     }
 
     yypush_parse(parser, PREFIX_COMMAND, NULL);
@@ -269,17 +277,17 @@ command *interpret_command (int token, uint64_t flags)
         yypush_parse(parser, PREFIX_ASSIGNMENT, NULL);
         string identifier_assignment = yylval.str;
         yypush_parse(parser, token, &yylval);
-        string value = yylval.str = string_list_retrieve_string (interpret_string(token_next(), SIM_STR_INT_DO_GLOB));
+        string value = yylval.str = string_list_retrieve_string (interpret_string(token_next(), SIM_STR_INT_DO_GLOB, &token));
         yypush_parse(parser, STRING, &yylval);
-        token = token_skip_whitespace(token);
+        token = token_skip_space(token);
     }
 
     // cont -> token = string | redirection
-    for(int cont = 1; cont; token = token_skip_whitespace(token))
+    for(int cont = 1; cont; token = token_skip_space(token))
     {
         if (token == STRING_LIST)
         {
-            string_list *list = interpret_string(STRING_LIST, SIM_STR_INT_DO_GLOB);
+            string_list *list = interpret_string(STRING_LIST, SIM_STR_INT_DO_GLOB, &token);
             for (string_list *ptr = list; ptr; ptr = ptr->next)
             {
                 yylval.str = new_string_2 (ptr->str);
@@ -299,22 +307,26 @@ command *interpret_command (int token, uint64_t flags)
                 case AND_GREATER_DOUBLE:
                 case LESS_AND:
 
+                    yypush_parse(parser, PREFIX_REDIRECTION, NULL);
+                    yypush_parse(parser, token, NULL);
+                    token = token_advance_skip_space (token);
+                    list = interpret_string (token, SIM_STR_INT_DO_GLOB, &token);
+                    assert (list);
+                    string file = string_list_retrieve_string (list);
+                    if (list->next)
+                    {
+                        fprintf (stderr, "Yar: `%s`: ambiguous redirection.\n", file);
+                        syntax_error = 1;
+                    }
+                    yylval.str = file;
+                    yypush_parse (parser, STRING, &yylval);
+                    free_string_list(list);
+                    break;
                 case NUM_LESS:
                 case NUM_GREATER:
                 case NUM_LESS_AND:
                 case NUM_GREATER_AND:
-
-                    yypush_parse(parser, PREFIX_REDIRECTION, NULL);
-                    yypush_parse(parser, token, NULL);
-                    token = token_skip_whitespace (token);
-                    list = interpret_string (token, 0);
-                    // token = token_skip_whitespace();
-                    // string file = yylval.str = interpret_string();
-                    // yypush_parse(parser, STRING, &yylval);
                     break;
-                case NEWLINE:
-                case SEMICOLON:
-                    yypush_parse(parser, token, NULL);
                 default:
                     cont = 0;
                     break;
@@ -322,11 +334,60 @@ command *interpret_command (int token, uint64_t flags)
         }
     }
 
+    if (saved_token) {
+        *saved_token = token;
+    }
+}
+
+void interpret_job (int token, uint64_t flags, int *saved_token)
+{
+    int status;
+    yypstate *parser = yypstate_new ();
+
+    if (token == TOK_NIL)
+    {
+        token = token_advance_skip_space_newline (token);
+    }
+
+    yypush_parse(parser, PREFIX_JOB, NULL);
+
+    for (int cont = 1; cont;) 
+    {
+        switch (token)
+        {
+            case NEWLINE:
+            case SEMICOLON:
+            case AMPERSAND:
+                yypush_parse (parser, token, NULL);
+                cont = 0;
+                token = token_advance_skip_space(token);
+                break;
+            case PIPE:
+                yypush_parse (parser, token, NULL);
+                token = token_advance_skip_space (token);
+                interpret_command (parser, token, 0, &token);
+                token = token_skip_space (token);
+                break;
+            default:
+                if (token == IDENTIFIER_ASSIGNMENT || token == STRING_LIST || check_redirection (token)) {
+                    interpret_command (parser, token, 0, &token);
+                    token = token_skip_space (token);
+                }
+                else {
+                    cont = 0;
+                }
+                break;
+        }
+    }
+
+    if (saved_token) {
+        *saved_token = token;
+    }
+
     // push eof to make parser finalize
-    status = yypush_parse (parser, 0, &yylval);
+    status = yypush_parse (parser, YYEOF, &yylval);
     yypstate_delete (parser);
     assert (status == 0);
-    return command_result;
 }
 
 // parse program_segment
@@ -340,16 +401,15 @@ void interpret(const char *source)
 
     // yypstate *parser = yypstate_new ();
     // yypstate_delete (parser);
-    command *command = interpret_command(TOK_NIL, 0);
-    debug_command (command);
-
-    if (syntax_error == 0) {
-        // run
-        __ast_execute_command (command);
+    interpret_job (TOK_NIL, 0, NULL);
+    if (syntax_error == 0 && runtime_error == 0) {
+        launch_job(extracted_job);
     }
-
-    // after that free things
-    free_command (command);
+    if (extracted_job)
+    {
+        free_job (extracted_job);
+        extracted_job = NULL;
+    }
 
     // yypush_parse(parser, 0, &yylval);
     yy_delete_buffer(buffer);

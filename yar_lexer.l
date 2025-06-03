@@ -137,7 +137,7 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             DEBUG_PRINT ("debug: enter double quoted mode\n");
                             in_double_quote = 1;
                             yy_push_state (DOUBLE_QUOTE_STRING);
-                            string_list *list = interpret_string (TOK_NIL, SIM_STR_INT_DOUBLE_QUOTE);
+                            string_list *list = interpret_string (TOK_NIL, SIM_STR_INT_DOUBLE_QUOTE, NULL);
                             string content;
                             if (list == NULL) {
                                 content = new_string(); 
@@ -225,12 +225,6 @@ IDENTIFIER          {LETTER}{ALNUM}*
                             return STRING_LIST;
                         }
 
-([^ \=\#\t\r\n\"\'()<>&|$;]|\\.|\\[ ])+     {
-                                    yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED,
-                                                            new_string_2(yytext) );
-                                    return STRING_LIST;
-                                }
-
 \n          {
     ++yylineno;
     return NEWLINE;
@@ -242,6 +236,18 @@ IDENTIFIER          {LETTER}{ALNUM}*
     return SEMICOLON_DOUBLE;
 }
 
+"{{"        {
+    return CODEBLOCK_BEGIN;
+}
+"}}"        {
+    return CODEBLOCK_END;
+}
+"|"         {
+    return PIPE;
+}
+"&"         {
+    return AMPERSAND;
+}
 "<"         {
     return LESS;
 }
@@ -266,15 +272,18 @@ IDENTIFIER          {LETTER}{ALNUM}*
 "&>>"       {
     return AND_GREATER_DOUBLE;
 }
-"<&"        {
-    return LESS_AND;
-}
 {DIGIT}+"<&"    {
     return NUM_LESS_AND;
 }
 {DIGIT}+">&"    {
     return NUM_GREATER_AND;
 }
+
+([^ \=\#\t\r\n\"\'()<>&\|$;{}]|\\.|\\[ ]|[{}])+     {
+                                    yylval->str_frag = make_string_fragment(STR_FRAG_QUOTED,
+                                                            new_string_2(yytext) );
+                                    return STRING_LIST;
+                                }
 
 .                       {
                             fprintf (stderr, "Unexpected character: %c\n", yytext[0]);

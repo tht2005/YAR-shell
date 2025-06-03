@@ -1,12 +1,15 @@
 #include "builtin_commands/builtin_commands.h"
 #include "data_structure/string.h"
 #include "yar_ast.h"
-#include "yar_env.h"
 #include "yar_exec.h"
 #include "yar_job.h"
 #include "yar_shell.h"
+#include "yar_parser.tab.h"
+#include "yar_defs.h"
+#include "yar_interpreter.h"
 
 #include <assert.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,111 +24,69 @@ size_t __cnt_processes (job *j)
     return res;
 }
 
-void launch_process (process *p, pid_t pgid, int foreground) {
-    pid_t pid;
-
-    if (shell_is_interactive) {
-        pid = getpid ();
-        if (pgid == 0) pgid = pid;
-        setpgid (pid, pgid);
-        if (foreground)
-            tcsetpgrp (shell_terminal, pgid);
-
-        signal (SIGINT, SIG_DFL);
-        signal (SIGQUIT, SIG_DFL);
-        signal (SIGTSTP, SIG_DFL);
-        signal (SIGTTIN, SIG_DFL);
-        signal (SIGTTOU, SIG_DFL);
-        signal (SIGCHLD, SIG_DFL);
-    }
-
-    if (p->stdin != STDIN_FILENO) {
-        dup2 (p->stdin, STDIN_FILENO);
-        close (p->stdin);
-    }
-
-    if (p->stdout != STDOUT_FILENO) {
-        dup2 (p->stdout, STDOUT_FILENO);
-        close (p->stdout);
-    }
-
-    if (p->stderr != STDERR_FILENO) {
-        dup2 (p->stderr, STDERR_FILENO);
-        close (p->stderr);
-    }
-
-    // init environment
-    execvp (* p->argv, p->argv);
-    perror ("execvp");
-    exit (1);
-}
-
-void launch_job (job *j, int foreground) {
-
-    // assignment case
-
-    process *p;
-    pid_t pid;
-    int mypipe[2], infile, outfile;
-
-    infile = j->stdin;
-    for (p = j->first_process; p; p = p->next) {
-        if (p->next) {
-            if (pipe (mypipe) < 0) {
-                perror ("pipe");
-                exit (1);
-            }
-            outfile = mypipe[1];
-        }
-        else {
-            outfile = j->stdout;
-        }
-
-        pid = fork ();
-
-        if (pid == 0) {
-            if (p->stdin == STDIN_FILENO)
-                p->stdin = infile;
-            if (p->stdout == STDOUT_FILENO)
-                p->stdout = outfile;
-            if (p->stderr == STDERR_FILENO)
-                p->stderr = j->stderr;
-            launch_process (p, j->pgid, foreground);
-        }
-        else if (pid < 0) {
-            perror ("fork");
-            exit (1);
-        }
-        else {
-            p->pid = pid;
-            if (shell_is_interactive) {
-                if (!j->pgid)
-                    j->pgid = pid;
-                setpgid (pid, j->pgid);
-            }
-        }
-
-        if (infile != j->stdin)
-            close (infile);
-        if (outfile != j->stdout)
-            close (outfile);
-
-        infile = mypipe[0];
-    }
-
-    format_job_info (j, "launched");
-
-    if (!shell_is_interactive)
-        wait_for_job (j);
-    else if (foreground)
-        put_job_in_foreground (j, 0);
-    else
-        put_job_in_background (j, 0);
-
-}
-
-void __ast_execute_command (command *command)
+int __open_wrapper (const char *file, int oflag, int perm)
 {
+    int fd = open (file, oflag, perm);
+    if (fd < 0) {
+        perror ("open");
+        runtime_error = 1;
+    }
+    return fd;
+}
+void __do_redirect (int type, string file, int *stdin, int *stdout, int *stderr)
+{
+    switch (type)
+    {
+        case LESS:
+            *stdin = __open_wrapper(file, O_RDONLY, RDFILE_PERM); 
+            break;
+        case GREATER:
+            *stdout = __open_wrapper (file, O_WRONLY | O_CREAT | O_TRUNC, WRFILE_PERM);
+            break;
+        case GREATER_DOUBLE:
+            *stdout = __open_wrapper (file, O_WRONLY | O_CREAT | O_APPEND, WRFILE_PERM);
+            break;
+        case AND_GREATER:
+        case GREATER_AND:
+            *stdout = *stderr = __open_wrapper (file, O_WRONLY | O_CREAT | O_TRUNC, WRFILE_PERM);
+            break;
+        case AND_GREATER_DOUBLE:
+            *stdout = *stderr = __open_wrapper (file, O_WRONLY | O_CREAT | O_APPEND, WRFILE_PERM);
+            break;
+
+        case NUM_LESS:
+        case NUM_GREATER:
+        case NUM_LESS_AND:
+        case NUM_GREATER_AND:
+        default:
+            assert (0);
+            break;
+    }
+}
+
+int __dup_wrapper (int fd_)
+{
+    int fd = dup(fd_);
+    if (fd < 0) {
+        perror ("fd");
+        runtime_error = 1;
+    }
+    return fd;
+}
+int __dup2_wrapper (int oldfd, int newfd)
+{
+    if (dup2 (oldfd, newfd) < 0) {
+        perror ("dup2");
+        runtime_error = 1;
+    }
+    return 0;
+}
+
+process *__ast_build_process (command *command)
+{
+    process *p = new_process();
+
+    int __stdin = STDIN_FILENO, __stdout = STDOUT_FILENO, __stderr = STDERR_FILENO;
     int argc = 0;
     for (argument_list *ptr = command->arguments_and_redirections; ptr; ptr = ptr->next)
     {
@@ -135,7 +96,81 @@ void __ast_execute_command (command *command)
                 ++argc;
                 break;
             case AL_REDIRECTION:
-                fprintf (stderr, "Yar: not support file redirection yet! (skip)\n");
+                __do_redirect (ptr->redirection.type, ptr->redirection.file, &__stdin, &__stdout, &__stderr);
+                break;
+            default:
+                assert (0);
+                break;
+        }
+    }
+
+    string *argv = (string *) malloc ((argc + 1) * sizeof (string *));
+    if (argv == NULL)
+    {
+        perror ("Yar: malloc");
+        if (__stdin != STDIN_FILENO) close (__stdin);
+        if (__stdout != STDOUT_FILENO) close (__stdout);
+        if (__stderr != STDERR_FILENO) close (__stderr);
+        exit (1);
+    }
+    argc = 0;
+    for (argument_list *ptr = command->arguments_and_redirections; ptr; ptr = ptr->next)
+    {
+        if (ptr->type == AL_ARGUMENT)
+        {
+            argv[argc++] = new_string_2 (ptr->arg);
+        }
+    }
+    argv[argc] = NULL;
+
+    if (argc == 0) {
+        fprintf (stderr, "Yar: may bug: __ast_build_command: argc = 0\n");
+        for (int i = 0; i < argc; ++i) {
+            free_string (argv[i]);
+        }
+        free (argv);
+        if (__stdin != STDIN_FILENO) close (__stdin);
+        if (__stdout != STDOUT_FILENO) close (__stdout);
+        if (__stderr != STDERR_FILENO) close (__stderr);
+        return NULL;
+    }
+
+    size_t count = string_list_count (command->assignments);
+    string *environ = (string *) malloc ((count + 1) * sizeof (string));
+    if (environ == NULL) {
+        perror ("Yar: malloc");
+        exit (1);
+    }
+    count = 0;
+    for (string_list *ptr = command->assignments; ptr; ptr = ptr->next)
+        environ[count++] = new_string_2 (ptr->str);
+    environ[count] = NULL;
+    p->environ = environ;
+    p->argc = argc;
+    p->argv = argv;
+    if (__stdin != STDIN_FILENO)
+        p->stdin = __stdin;
+    if (__stdout != STDOUT_FILENO)
+        p->stdout = __stdout;
+    if (__stderr != STDERR_FILENO)
+        p->stderr = __stderr;
+    return p;
+}
+
+// fix this as an built-in command exec
+void __ast_execute_command (command *command)
+{
+    int __stdin = STDIN_FILENO, __stdout = STDOUT_FILENO, __stderr = STDERR_FILENO;
+    int argc = 0;
+    for (argument_list *ptr = command->arguments_and_redirections; ptr; ptr = ptr->next)
+    {
+        switch (ptr->type)
+        {
+            case AL_ARGUMENT:
+                ++argc;
+                break;
+            case AL_REDIRECTION:
+                __do_redirect (ptr->redirection.type, ptr->redirection.file, &__stdin, &__stdout, &__stderr);
                 break;
             default:
                 assert (0);
@@ -168,15 +203,46 @@ void __ast_execute_command (command *command)
         return;
     }
 
-    int status = exec_builtin (argc, argv);
-    if (status != COMMAND_NOT_FOUND)
     {
-        fprintf (stderr, "Yar: debug: execute builtin command `%s`\n", argv[0]);
-        for (int i = 0; i < argc; ++i) {
-            free_string (argv[i]);
+        int saved_stdin = __dup_wrapper (STDIN_FILENO);
+        int saved_stdout = __dup_wrapper (STDOUT_FILENO);
+        int saved_stderr = __dup_wrapper (STDERR_FILENO);
+        if (__stdin != STDIN_FILENO && __stdin >= 0)
+        {
+            __dup2_wrapper (__stdin, STDIN_FILENO);
         }
-        free (argv);
-        return;
+        if (__stdout != STDOUT_FILENO && __stdout >= 0)
+        {
+            __dup2_wrapper (__stdout, STDOUT_FILENO);
+        }
+        if (__stderr != STDERR_FILENO && __stderr >= 0)
+        {
+            __dup2_wrapper (__stderr, STDERR_FILENO);
+        }
+
+        int status = exec_builtin (argc, argv);
+
+        __dup2_wrapper (saved_stdin, STDIN_FILENO);
+        __dup2_wrapper (saved_stdout, STDOUT_FILENO);
+        __dup2_wrapper (saved_stderr, STDERR_FILENO);
+
+        close (saved_stdin);
+        close (saved_stdout);
+        close (saved_stderr);
+
+        if (__stdin != STDIN_FILENO) close (__stdin);
+        if (__stdout != STDOUT_FILENO) close (__stdout);
+        if (__stderr != STDERR_FILENO) close (__stderr);
+
+        if (status != COMMAND_NOT_FOUND)
+        {
+            fprintf (stderr, "Yar: debug: execute builtin command `%s`\n", argv[0]);
+            for (int i = 0; i < argc; ++i) {
+                free_string (argv[i]);
+            }
+            free (argv);
+            return;
+        }
     }
 
     fprintf (stderr, "Yar: debug: execute host command `%s`\n", argv[0]);
@@ -187,8 +253,11 @@ void __ast_execute_command (command *command)
 
     job *j = new_job();
     j->first_process = p;
+    j->stdin = __stdin;
+    j->stdout = __stdout;
+    j->stderr = __stderr;
 
-    launch_job (j, 1);
+    // launch_job (j, 1);
 
     free_job (j);
     // argv already be freed

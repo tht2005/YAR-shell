@@ -48,11 +48,12 @@ extern int yydebug;
 #line 5 "yar_parser.y"
 
 #include "yar_ast.h"
+#include "yar_exec.h"
+#include "yar_job.h"
 #include "data_structure/string.h"
+#include "yar_interpreter.h"
 
-extern command *command_result;
-
-#line 56 "yar_parser.tab.h"
+#line 57 "yar_parser.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -70,36 +71,39 @@ extern command *command_result;
     PREFIX_ASSIGNMENT = 262,       /* PREFIX_ASSIGNMENT  */
     PREFIX_REDIRECTION = 263,      /* PREFIX_REDIRECTION  */
     PREFIX_COMMAND = 264,          /* PREFIX_COMMAND  */
-    PREFIX_SUBSTITUTION_STRING = 265, /* PREFIX_SUBSTITUTION_STRING  */
-    PREFIX_SUBSTITUTION_COMMAND = 266, /* PREFIX_SUBSTITUTION_COMMAND  */
-    PREFIX_SUBSTITUTION_ARITHMETIC = 267, /* PREFIX_SUBSTITUTION_ARITHMETIC  */
-    IDENTIFIER_ASSIGNMENT = 268,   /* IDENTIFIER_ASSIGNMENT  */
-    STRING = 269,                  /* STRING  */
-    STRING_LIST = 270,             /* STRING_LIST  */
-    SEMICOLON = 271,               /* SEMICOLON  */
-    SEMICOLON_DOUBLE = 272,        /* SEMICOLON_DOUBLE  */
-    NEWLINE = 273,                 /* NEWLINE  */
-    LESS = 274,                    /* LESS  */
-    GREATER = 275,                 /* GREATER  */
-    GREATER_DOUBLE = 276,          /* GREATER_DOUBLE  */
-    AND_GREATER = 277,             /* AND_GREATER  */
-    GREATER_AND = 278,             /* GREATER_AND  */
-    AND_GREATER_DOUBLE = 279,      /* AND_GREATER_DOUBLE  */
-    LESS_AND = 280,                /* LESS_AND  */
-    NUM_LESS = 281,                /* NUM_LESS  */
-    NUM_GREATER = 282,             /* NUM_GREATER  */
-    NUM_LESS_AND = 283,            /* NUM_LESS_AND  */
-    NUM_GREATER_AND = 284,         /* NUM_GREATER_AND  */
-    PLUS = 285,                    /* PLUS  */
-    MINUS = 286,                   /* MINUS  */
-    TIMES = 287,                   /* TIMES  */
-    DIVIDE = 288,                  /* DIVIDE  */
-    BRACE_LEFT = 289,              /* BRACE_LEFT  */
-    BRACE_RIGHT = 290,             /* BRACE_RIGHT  */
-    CODEBLOCK_BEGIN = 291,         /* CODEBLOCK_BEGIN  */
-    CODEBLOCK_END = 292,           /* CODEBLOCK_END  */
-    DOUBLE_QUOTE = 293,            /* DOUBLE_QUOTE  */
-    WHITESPACE = 294               /* WHITESPACE  */
+    PREFIX_JOB = 265,              /* PREFIX_JOB  */
+    PREFIX_SUBSTITUTION_STRING = 266, /* PREFIX_SUBSTITUTION_STRING  */
+    PREFIX_SUBSTITUTION_COMMAND = 267, /* PREFIX_SUBSTITUTION_COMMAND  */
+    PREFIX_SUBSTITUTION_ARITHMETIC = 268, /* PREFIX_SUBSTITUTION_ARITHMETIC  */
+    IDENTIFIER_ASSIGNMENT = 269,   /* IDENTIFIER_ASSIGNMENT  */
+    STRING = 270,                  /* STRING  */
+    STRING_LIST = 271,             /* STRING_LIST  */
+    SEMICOLON = 272,               /* SEMICOLON  */
+    SEMICOLON_DOUBLE = 273,        /* SEMICOLON_DOUBLE  */
+    NEWLINE = 274,                 /* NEWLINE  */
+    PIPE = 275,                    /* PIPE  */
+    AMPERSAND = 276,               /* AMPERSAND  */
+    CODEBLOCK_BEGIN = 277,         /* CODEBLOCK_BEGIN  */
+    CODEBLOCK_END = 278,           /* CODEBLOCK_END  */
+    LESS = 279,                    /* LESS  */
+    GREATER = 280,                 /* GREATER  */
+    GREATER_DOUBLE = 281,          /* GREATER_DOUBLE  */
+    AND_GREATER = 282,             /* AND_GREATER  */
+    GREATER_AND = 283,             /* GREATER_AND  */
+    AND_GREATER_DOUBLE = 284,      /* AND_GREATER_DOUBLE  */
+    LESS_AND = 285,                /* LESS_AND  */
+    NUM_LESS = 286,                /* NUM_LESS  */
+    NUM_GREATER = 287,             /* NUM_GREATER  */
+    NUM_LESS_AND = 288,            /* NUM_LESS_AND  */
+    NUM_GREATER_AND = 289,         /* NUM_GREATER_AND  */
+    PLUS = 290,                    /* PLUS  */
+    MINUS = 291,                   /* MINUS  */
+    TIMES = 292,                   /* TIMES  */
+    DIVIDE = 293,                  /* DIVIDE  */
+    BRACE_LEFT = 294,              /* BRACE_LEFT  */
+    BRACE_RIGHT = 295,             /* BRACE_RIGHT  */
+    DOUBLE_QUOTE = 296,            /* DOUBLE_QUOTE  */
+    WHITESPACE = 297               /* WHITESPACE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -108,7 +112,7 @@ extern command *command_result;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 25 "yar_parser.y"
+#line 27 "yar_parser.y"
 
     string str;
     string_fragment str_frag;
@@ -116,8 +120,10 @@ union YYSTYPE
     string_list *str_list;
     argument_list *argument_list;
     command *command;
+    process *process;
+    job *job;
 
-#line 121 "yar_parser.tab.h"
+#line 127 "yar_parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

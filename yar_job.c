@@ -24,9 +24,10 @@ process *new_process ()
         exit (1);
     }
     p->next = NULL;
-    p->environment = NULL;
+    p->environ = NULL;
     p->argc = 0;
     p->argv = NULL;
+    p->stdin = p->stdout = p->stderr = -1;
     return p;
 }
 job *new_job ()
@@ -45,11 +46,15 @@ job *new_job ()
     j->stdin = STDIN_FILENO;
     j->stdout = STDOUT_FILENO;
     j->stderr = STDERR_FILENO;
+    j->foreground = 1;
     return j;
 }
 void free_process (process *p) {
-    for (string *ptr = p->argv; *ptr; ++ptr)
+    for (string *ptr = p->environ; ptr; ++ptr)
         free_string (*ptr);
+    for (string *ptr = p->argv; ptr; ++ptr)
+        free_string (*ptr);
+    free (p->environ);
     free (p->argv);
     free (p);
 }
@@ -61,6 +66,112 @@ void free_job (job *j) {
     if (j->command)
         free_string (j->command);
     free (j);
+}
+
+void launch_process (process *p, pid_t pgid, int foreground) {
+    pid_t pid;
+
+    if (shell_is_interactive) {
+        pid = getpid ();
+        if (pgid == 0) pgid = pid;
+        setpgid (pid, pgid);
+        if (foreground)
+            tcsetpgrp (shell_terminal, pgid);
+
+        signal (SIGINT, SIG_DFL);
+        signal (SIGQUIT, SIG_DFL);
+        signal (SIGTSTP, SIG_DFL);
+        signal (SIGTTIN, SIG_DFL);
+        signal (SIGTTOU, SIG_DFL);
+        signal (SIGCHLD, SIG_DFL);
+    }
+
+    if (p->stdin != STDIN_FILENO) {
+        dup2 (p->stdin, STDIN_FILENO);
+        close (p->stdin);
+    }
+
+    if (p->stdout != STDOUT_FILENO) {
+        dup2 (p->stdout, STDOUT_FILENO);
+        close (p->stdout);
+    }
+
+    if (p->stderr != STDERR_FILENO) {
+        dup2 (p->stderr, STDERR_FILENO);
+        close (p->stderr);
+    }
+
+    // init environment
+    execvp (* p->argv, p->argv);
+    perror ("execvp");
+    exit (1);
+}
+
+void launch_job (job *j) {
+
+    j->next = first_job;
+    first_job = j;
+
+    // assignment case
+
+    process *p;
+    pid_t pid;
+    int mypipe[2], infile, outfile;
+
+    infile = j->stdin;
+    for (p = j->first_process; p; p = p->next) {
+        if (p->next) {
+            if (pipe (mypipe) < 0) {
+                perror ("pipe");
+                exit (1);
+            }
+            outfile = mypipe[1];
+        }
+        else {
+            outfile = j->stdout;
+        }
+
+        pid = fork ();
+
+        if (pid == 0) {
+            if (p->stdin == -1)
+                p->stdin = infile;
+            if (p->stdout == -1)
+                p->stdout = outfile;
+            if (p->stderr == -1)
+                p->stderr = j->stderr;
+            launch_process (p, j->pgid, j->foreground);
+        }
+        else if (pid < 0) {
+            perror ("fork");
+            exit (1);
+        }
+        else {
+            p->pid = pid;
+            if (shell_is_interactive) {
+                if (!j->pgid)
+                    j->pgid = pid;
+                setpgid (pid, j->pgid);
+            }
+        }
+
+        if (infile != j->stdin)
+            close (infile);
+        if (outfile != j->stdout)
+            close (outfile);
+
+        infile = mypipe[0];
+    }
+
+    // format_job_info (j, "launched");
+
+    if (!shell_is_interactive)
+        wait_for_job (j);
+    else if (j->foreground)
+        put_job_in_foreground (j, 0);
+    else
+        put_job_in_background (j, 0);
+
 }
 
 job * find_job (pid_t pgid) {
@@ -96,8 +207,12 @@ int mark_process_status (pid_t pid, int status) {
             for (p = j->first_process; p; p = p->next)
                 if (p->pid == pid) {
                     p->status = status;
-                    if (WIFSTOPPED (status))
+                    if (WIFSTOPPED (status)) {
                         p->stopped = 1;
+                        tcsetpgrp (shell_terminal, shell_pgid);
+                        tcgetattr (shell_terminal, &j->tmodes);
+                        tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes);
+                    }
                     else {
                         p->completed = 1;
                         if (WIFSIGNALED (status))
@@ -129,14 +244,14 @@ void wait_for_job (job *j) {
     int status;
     pid_t pid;
     do
-        pid = waitpid (WAIT_ANY, &status, WUNTRACED);
+        pid = waitpid (-j->pgid, &status, WUNTRACED);
     while (!mark_process_status (pid, status)
             && !job_is_stopped (j)
             && !job_is_completed (j));
 }
 
 void format_job_info (job *j, const char *status) {
-    //fprintf (stderr, "%ld (%s): %s\n", (long)j->pgid, status, j->command);
+    fprintf (stderr, "%ld (%s): %s\n", (long)j->pgid, status, j->command);
 }
 
 void do_job_notification (void) {
@@ -180,7 +295,6 @@ void put_job_in_foreground (job *j, int cont) {
     wait_for_job (j);
 
     tcsetpgrp (shell_terminal, shell_pgid);
-
     tcgetattr (shell_terminal, &j->tmodes);
     tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes);
 }
@@ -193,15 +307,14 @@ void put_job_in_background (job *j, int cont) {
 
 void mark_job_as_running (job *j) {
     process *p;
-
     for (p = j->first_process; p; p = p->next)
         p->stopped = 0;
     j->notified = 0;
 }
 
-void continue_job (job *j, int foreground) {
+void continue_job (job *j) {
     mark_job_as_running (j);
-    if (foreground)
+    if (j->foreground)
         put_job_in_foreground (j, 1);
     else
         put_job_in_background (j, 1);

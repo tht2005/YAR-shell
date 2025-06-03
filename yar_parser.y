@@ -4,9 +4,10 @@
 
 %code requires {
 #include "yar_ast.h"
+#include "yar_exec.h"
+#include "yar_job.h"
 #include "data_structure/string.h"
-
-extern command *command_result;
+#include "yar_interpreter.h"
 }
 
 %{
@@ -14,11 +15,12 @@ extern command *command_result;
 #include <stdio.h>
 #include <stdlib.h>
 #include "yar_debug.h"
+#include "yar_job.h"
 
 int yylex(void);
 void yyerror(const char *s);
 
-command *command_result;
+extern job *extracted_job;
 
 %}
 
@@ -29,6 +31,8 @@ command *command_result;
     string_list *str_list;
     argument_list *argument_list;
     command *command;
+    process *process;
+    job *job;
 }
 
 %token TOK_NIL
@@ -39,6 +43,7 @@ command *command_result;
 %token PREFIX_ASSIGNMENT
 %token PREFIX_REDIRECTION
 %token PREFIX_COMMAND
+%token PREFIX_JOB
 
 %token PREFIX_SUBSTITUTION_STRING
 %token PREFIX_SUBSTITUTION_COMMAND 
@@ -50,59 +55,97 @@ command *command_result;
 %token SEMICOLON SEMICOLON_DOUBLE
 %token NEWLINE
 
+%token PIPE
+%token AMPERSAND
+%token CODEBLOCK_BEGIN          // {{
+%token CODEBLOCK_END            // }}
+
 %token LESS GREATER GREATER_DOUBLE AND_GREATER GREATER_AND AND_GREATER_DOUBLE LESS_AND
 %token NUM_LESS NUM_GREATER NUM_LESS_AND NUM_GREATER_AND
 %token PLUS MINUS TIMES DIVIDE
 
 %token BRACE_LEFT BRACE_RIGHT
 
-%token CODEBLOCK_BEGIN          // {{
-%token CODEBLOCK_END            // }}
-
 %token DOUBLE_QUOTE
 
 // token for lexer, do not use in grammar
 %token WHITESPACE
 
+%right PIPE
+%right AMPERSAND
 
 %type <str> assignment
 %type <redirection> redirection
-%type <str_list> assignment_list;
-%type <argument_list> arguments_and_redirections_list;
-%type <command> command;
+%type <str_list> assignment_list
+%type <argument_list> arguments_and_redirections_list
+%type <process> command
+%type <job> job_background job_pipeline job_command
 
 %start input
 
 %%
 
-input:          program_segment
-     |          function
-     |          command         {
-                                    command_result = $1;
+input:          PREFIX_JOB job_pipeline 
+                                {
+                                    extracted_job = $2;
                                 }
-     |          substitution
+     |          PREFIX_JOB job_background
+                                {
+                                    extracted_job = $2;
+                                }
      ;
 
 splitter:       SEMICOLON
         |       NEWLINE
         ;
-
+ 
 program_segment:    PREFIX_PROGRAM_SEGMENT
                |    program_segment function
                |    codeblock
                ;
 
-codeblock:      PREFIX_CODEBLOCK
-         |      statement
+codeblock:      PREFIX_CODEBLOCK CODEBLOCK_BEGIN CODEBLOCK_END
          ;
-
 function:;
 
 statement:;
 
+job_background:     job_pipeline AMPERSAND
+                                {
+                                    $$ = $1;
+                                    $$->foreground = 0;
+                                }
+              ;
+
+job_pipeline:       job_command
+                                {
+                                    $$ = $1;
+                                }
+            |       job_command PIPE job_pipeline
+                                {
+                                    process *p = $1->first_process;
+                                    $1->first_process = NULL;
+                                    free_job ($1);
+                                    p->next = $3->first_process;
+                                    $3->first_process = p;
+                                    $$ = $3;
+                                }
+            ;
+
+job_command:        command
+                                {
+                                    job *job = new_job ();
+                                    job->first_process = $1;
+                                    $$ = job;
+                                }
+           |        codeblock
+           ;
+
 command:        PREFIX_COMMAND assignment_list arguments_and_redirections_list
                                                                     {
-                                                                        $$ = new_command ($2, $3);
+                                                                        command *command = new_command ($2, $3);
+                                                                        $$ = __ast_build_process (command);
+                                                                        free_command (command);
                                                                     }
        ;
 
@@ -216,6 +259,7 @@ substitution_arithmetic:    PREFIX_SUBSTITUTION_ARITHMETIC "$((" "))"
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Yar: Syntax error: %s\n", s);
+    fprintf(stderr, "Yar: %s\n", s);
+    syntax_error = 1;
 }
 
