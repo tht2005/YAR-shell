@@ -42,7 +42,16 @@ void format_job_info (job *j, const char *status);
 void wait_for_job (job *j);
 
 void put_job_in_foreground (job *j, int cont);
-
 void put_job_in_background (job *j, int cont);
+void continue_job (job *j);
+
+job * find_job (pid_t pgid);
+int job_is_stopped (job *j);
+int job_is_completed (job *j);
+
+void do_job_notification (void);
+
+extern job *first_job;
+
 
 #endif

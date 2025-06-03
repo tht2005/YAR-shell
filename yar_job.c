@@ -1,8 +1,11 @@
 #include "yar_job.h"
+#include "yar_exec.h"
 #include "yar_shell.h"
+#include "builtin_commands/builtin_commands.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <errno.h>
@@ -107,16 +110,52 @@ void launch_process (process *p, pid_t pgid, int foreground) {
     exit (1);
 }
 
+string build_command (job *j)
+{
+    string res = new_string();
+    for (process *p = j->first_process; p; p = p->next)
+    {
+        if (p != j->first_process)
+            res = string_append_back (res, "| ");
+        for (string *ptr = p->environ; *ptr; ++ptr)
+            res = string_append_back (res, *ptr),
+            res = string_push_back (res, ' ');
+        for (string *ptr = p->argv; *ptr; ++ptr) {
+            if (ptr != p->argv)
+                res = string_push_back (res, '`');
+            res = string_append_back (res, *ptr);
+            if (ptr != p->argv)
+                res = string_push_back (res, '`');
+            res = string_push_back (res, ' ');
+        }
+    }
+    return res;
+}
+
 void launch_job (job *j) {
 
-    j->next = first_job;
-    first_job = j;
+    if (j->first_process == NULL) {
+        fprintf (stderr, "Yar: may be bug: job has no process\n");
+        return ;
+    }
 
-    // assignment case
+    if (j->first_process->next == NULL) {
+        if (j->first_process->argc == 0) {
+            for (string *ptr = j->first_process->environ; *ptr; ++ptr) {
+                putenv (strdup (*ptr));
+            }
+            return ;
+        }
+        else if (check_builtin (j->first_process->argv[0])) {
+            launch_builtin (j);
+            return ;
+        }
+    }
 
     process *p;
     pid_t pid;
     int mypipe[2], infile, outfile;
+    int syncpipe[2];
 
     infile = j->stdin;
     for (p = j->first_process; p; p = p->next) {
@@ -163,7 +202,9 @@ void launch_job (job *j) {
         infile = mypipe[0];
     }
 
-    // format_job_info (j, "launched");
+    j->command = build_command (j);
+    j->next = first_job;
+    first_job = j;
 
     if (!shell_is_interactive)
         wait_for_job (j);
@@ -209,14 +250,15 @@ int mark_process_status (pid_t pid, int status) {
                     p->status = status;
                     if (WIFSTOPPED (status)) {
                         p->stopped = 1;
-                        tcsetpgrp (shell_terminal, shell_pgid);
-                        tcgetattr (shell_terminal, &j->tmodes);
-                        tcsetattr (shell_terminal, TCSADRAIN, &shell_tmodes);
+                        p->completed = 0;
+                        fprintf (stderr, "stopped!\n");
                     }
                     else {
+                        p->stopped = 0;
                         p->completed = 1;
                         if (WIFSIGNALED (status))
                             fprintf (stderr, "%d: Terminated by signal %d.\n", (int)pid, WTERMSIG (p->status));
+                        fprintf (stderr, "completed!\n");
                     }
                     return 0;
                 }
@@ -234,9 +276,8 @@ int mark_process_status (pid_t pid, int status) {
 void update_status (void) {
     int status;
     pid_t pid;
-
     do
-        pid = waitpid (WAIT_ANY, &status, WUNTRACED);
+        pid = waitpid (WAIT_ANY, &status, WNOHANG | WUNTRACED | WCONTINUED);
     while (!mark_process_status (pid, status));
 }
 
@@ -244,14 +285,14 @@ void wait_for_job (job *j) {
     int status;
     pid_t pid;
     do
-        pid = waitpid (-j->pgid, &status, WUNTRACED);
+        pid = waitpid (WAIT_ANY, &status, WUNTRACED);
     while (!mark_process_status (pid, status)
             && !job_is_stopped (j)
             && !job_is_completed (j));
 }
 
 void format_job_info (job *j, const char *status) {
-    fprintf (stderr, "%ld (%s): %s\n", (long)j->pgid, status, j->command);
+    fprintf (stderr, "[%5d] %7s\t\t%s\n", j->pgid, status, j->command);
 }
 
 void do_job_notification (void) {
@@ -264,7 +305,7 @@ void do_job_notification (void) {
         jnext = j->next;
 
         if (job_is_completed (j)) {
-            format_job_info (j, "completed");
+            format_job_info (j, "Done");
             if (jlast)
                 jlast->next = jnext;
             else
@@ -273,7 +314,7 @@ void do_job_notification (void) {
         }
         
         else if (job_is_stopped (j) && !j->notified) {
-            format_job_info (j, "stopped");
+            format_job_info (j, "Stopped");
             j->notified = 1;
             jlast = j;
         }
