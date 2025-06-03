@@ -5,13 +5,11 @@
 void help_pre ()
 {
     // khoi tao?
-    fprintf (stderr, "debug: help_pre ()\n");
 }
 
 void help_post ()
 {
     // giai phong bo nho?
-    fprintf (stderr, "debug: help_post ()\n");
 }
 
 int help_main(int argc, char **argv)
