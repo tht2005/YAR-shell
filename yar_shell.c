@@ -1,20 +1,33 @@
 #include "yar_shell.h"
 
+#include <stdio.h>
+#include <readline/readline.h>
 #include <sys/types.h>
 #include <termios.h>
 #include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdio.h>
+
+volatile sig_atomic_t got_sigint = 0;
 
 pid_t shell_pgid;
 struct termios shell_tmodes;
 int shell_terminal;
 int shell_is_interactive;
 
-void sigint_handler (int sig)
+void sigint_handler (int signo)
 {
-    exit (0);
+    got_sigint = 1;
+    // rl_replace_line ("", 0);
+    // rl_done = 1;
+    // write (STDOUT_FILENO, "\n", 1);
+    // rl_cleanup_after_signal();
+    rl_replace_line ("", 0);
+    rl_on_new_line();
+    write (STDOUT_FILENO, "\n", 1);
+    rl_done = 1;
+    tcflush (shell_terminal, TCIFLUSH);
+    rl_forced_update_display();
 }
 
 void init_shell () {
@@ -39,7 +52,6 @@ void init_shell () {
         }
 
         tcsetpgrp (shell_terminal, shell_pgid);
-
         tcgetattr (shell_terminal, &shell_tmodes);
     }
 }

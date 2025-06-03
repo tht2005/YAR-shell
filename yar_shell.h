@@ -3,7 +3,9 @@
 
 #include <sys/types.h>
 #include <termios.h>
+#include <signal.h>
 
+extern volatile sig_atomic_t got_sigint;
 extern int shell_terminal;
 extern int shell_is_interactive;
 extern pid_t shell_pgid;

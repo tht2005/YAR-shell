@@ -53,9 +53,14 @@ string read_multiline_input (const char *prompt)
     while (1)
     {
         line = readline(prompt);
+        if (got_sigint)
+        {
+            if (line) free (line);
+            if (fullline) free_string (fullline);
+            return NULL;
+        }
         if (line == NULL)
         {
-            fprintf (stderr, "readline: EOF or error\n");
             break;
         }
 
@@ -94,6 +99,10 @@ void run_prompt () {
 
         input = read_multiline_input(ps);
         if (input == NULL) {
+            if (got_sigint) {
+                got_sigint = 0;
+                continue;
+            }
             break;
         }
 
