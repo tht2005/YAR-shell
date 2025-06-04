@@ -35,7 +35,7 @@ int source_main(int argc, char **argv)
             line[--len] = '\0';
         interpret (line);
     }
-
+    fclose (file);
     return 0;
 }
 

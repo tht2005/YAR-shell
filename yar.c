@@ -14,37 +14,23 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-// void run_file (char *fp) {
-//     FILE *file = fopen (fp, "rb");
-//     if(fp == NULL) {
-//         perror (fp);
-//         exit (1);
-//     }
-//     fseek (file, 0L, SEEK_END);
-//     size_t lsize = ftell (file);
-//     rewind (file);
-//
-//     char *buffer = calloc (sizeof (char), lsize + 1);
-//     if (buffer == NULL) {
-//         fclose (file);
-//         fprintf (stderr, "memory alloc fails.\n");
-//         exit (1);
-//     }
-//
-//     if (1 != fread (buffer, lsize, 1, file)) {
-//         fclose (file);
-//         free (buffer);
-//         fprintf (stderr, "entire file read fails\n");
-//         exit (1);
-//     }
-//
-//     fclose (file);
-//     run (buffer);
-//     free (buffer);
-//
-//     if (hadError) exit (65);
-//     if (hadRuntimeError) exit (70);
-// }
+void run_file (char *fp) {
+    FILE *file = fopen (fp, "r");
+    if (file == NULL) {
+        fprintf (stderr, "Failed to open file.\n");
+        exit (-1);
+    }
+    char line[6969];
+    while (fgets (line, sizeof (line), file)) {
+        int len = strlen (line);
+        if (len && line[len - 1] == '\n')
+            line[--len] = '\0';
+        if (*line && line[0] != '#')
+            interpret (line);
+    }
+    fclose (file);
+    exit (0);
+}
 
 string read_multiline_input (const char *prompt)
 {
@@ -131,7 +117,7 @@ int main(int argc, char *argv[]) {
         exit (64);
     }
     else if (argc == 2) {
-        // run_file (argv[1]);
+        run_file (argv[1]);
     }
     else {
         run_prompt ();

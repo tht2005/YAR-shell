@@ -73,6 +73,17 @@ void free_job (job *j) {
     free (j);
 }
 
+void launch_exec (int argc, char **argv)
+{
+    int status = exec_builtin (argc, argv);
+    if (status == COMMAND_NOT_FOUND)
+    {
+        execvp (*argv, argv);
+        perror ("execvp");
+        exit (1);
+    }
+}
+
 void launch_process (process *p, pid_t pgid, int foreground) {
     pid_t pid;
 
@@ -104,9 +115,7 @@ void launch_process (process *p, pid_t pgid, int foreground) {
     }
 
     // init environment
-    execvp (* p->argv, p->argv);
-    perror ("execvp");
-    exit (1);
+    launch_exec (p->argc, p->argv);
 }
 
 string build_command (job *j)
@@ -132,7 +141,6 @@ string build_command (job *j)
 }
 
 void launch_job (job *j) {
-
     if (j->first_process == NULL) {
         fprintf (stderr, "Yar: may be bug: job has no process\n");
         return ;

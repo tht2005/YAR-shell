@@ -152,21 +152,24 @@ void launch_builtin (job *j)
     int saved_stdout = __dup_wrapper (STDOUT_FILENO);
     int saved_stderr = __dup_wrapper (STDERR_FILENO);
 
-    int __stdin = j->stdin;
-    int __stdout = j->stdout;
-    int __stderr = j->stderr;
+    int __stdin = j->first_process->stdin;
+    int __stdout = j->first_process->stdout;
+    int __stderr = j->first_process->stderr;
 
     if (__stdin != STDIN_FILENO && __stdin >= 0)
     {
         __dup2_wrapper (__stdin, STDIN_FILENO);
+        close (__stdin);
     }
     if (__stdout != STDOUT_FILENO && __stdout >= 0)
     {
         __dup2_wrapper (__stdout, STDOUT_FILENO);
+        close (__stdout);
     }
     if (__stderr != STDERR_FILENO && __stderr >= 0)
     {
         __dup2_wrapper (__stderr, STDERR_FILENO);
+        close (__stderr);
     }
 
     int status = exec_builtin (j->first_process->argc, j->first_process->argv);
@@ -178,10 +181,6 @@ void launch_builtin (job *j)
     close (saved_stdin);
     close (saved_stdout);
     close (saved_stderr);
-
-    if (__stdin != STDIN_FILENO) close (__stdin);
-    if (__stdout != STDOUT_FILENO) close (__stdout);
-    if (__stderr != STDERR_FILENO) close (__stderr);
 
     if (status == COMMAND_NOT_FOUND) {
         fprintf (stderr, "Yar: bug: exec_builtin: is not a builtin command");

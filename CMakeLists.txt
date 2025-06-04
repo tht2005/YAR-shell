@@ -69,3 +69,6 @@ target_compile_options (
 # Testing
 enable_testing ()
 add_subdirectory (tests)
+
+install(TARGETS yar 
+        RUNTIME DESTINATION bin)
