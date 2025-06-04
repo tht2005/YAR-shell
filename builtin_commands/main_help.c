@@ -15,13 +15,24 @@ void help_post ()
 int help_main(int argc, char **argv)
 {
     puts(
-"Yar: Simple scripting language.\n"
+"== Tiny-shell ==\n"
+"Built-in commands\n"
+"  help\n"
+"  exit <n>\n"
+"  date <format>\n"
+"  ls <dir>\n"
+"  path [-a <dir> | -d <index>]\n"
+"  echo <str> ... \n"
+"  pwd\n"
+"  source <file>\n"
 "\n"
-"Builtin Commands:\n"
-"\thelp: Show help\n"
-"\tls: show current directory's content\n"
-"\tpwd: show current directory\n"
-);
+"Job control\n"
+"  jobs\n"
+"  fg <pgid>\n"
+"  bg <pgid>\n"
+"  suspend <pgid>\n"
+"  kill <pgid>\n"
+        );
     fflush (stdout);
     return 0;
 }
