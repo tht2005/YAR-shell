@@ -52,8 +52,8 @@ void init_shell () {
             kill (- shell_pgid, SIGTTIN);
         }
 
-        // signal (SIGINT, sigint_handler);
-        signal (SIGINT, SIG_IGN);
+        signal (SIGINT, sigint_handler);
+        // signal (SIGINT, SIG_IGN);
         signal (SIGQUIT, SIG_IGN);
         signal (SIGTSTP, SIG_IGN);
         signal (SIGTTIN, SIG_IGN);
