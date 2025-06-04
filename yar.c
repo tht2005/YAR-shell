@@ -80,7 +80,7 @@ void run_prompt () {
     string input;
     while (1) {
         char *cwd = getcwd (NULL, 0);
-        snprintf (ps, 100, "tiny-shell %s> ", cwd);
+        snprintf (ps, 100, "tiny-shell %s $ ", cwd);
         free (cwd);
 
         input = read_multiline_input(ps);
